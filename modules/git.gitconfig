@@ -1,0 +1,72 @@
+# Git aliases managed by shell-tools
+# This file is the source for cache/git-aliases
+# Edit here, then run st-reload to regenerate
+
+[alias]
+    # Quick actions
+    aa = add .
+    b = branch
+    cm = commit -m
+    ce = commit --allow-empty -m
+    cam = !git add -A && git commit -m
+    amend = commit -a --amend
+
+    # Checkout
+    co = checkout
+    com = checkout main
+    cb = checkout -b
+
+    # Assume unchanged (hide local changes from git)
+    au = update-index --assume-unchanged
+    nau = update-index --no-assume-unchanged
+
+    # Reset
+    r = reset --hard
+    undo = reset HEAD~1 --mixed
+
+    # Stash
+    st = stash
+    sp = stash pop
+    sa = stash apply
+
+    # Pull/Rebase
+    pl = pull
+    rb = pull --rebase --prune
+    pm = pull origin master
+    rm = pull --rebase --prune origin master
+
+    # Pull with stash
+    pls = !git st && git pl && git sp
+    pms = !git st && git pm && git sp
+    rs = !git stash && git pl && git stash pop
+    rms = !git stash && git pm && git stash pop
+
+    # Push
+    ps = push
+    pf = push -f
+
+    # Status and logs
+    s = status -sb
+    last = log -1 HEAD --stat
+    ll = log --oneline
+
+    # Diff
+    d = diff
+    dv = difftool -t vimdiff -y
+
+    # Remote
+    rv = remote -v
+
+    # Config
+    gl = config --global -l
+    ec = config --global -e
+
+    # Workflow shortcuts
+    tbuild = !git ce 'Re-trigger build' && git push
+    scpm = !git st && git com && git pl && git sp
+    save = !git add -A && git commit -m 'SAVEPOINT'
+    wip = !git add -u && git commit -m "WIP"
+    wipe = !git add -A && git commit -qm 'WIPE SAVEPOINT' && git reset HEAD~1 --hard
+
+    # Search
+    se = !git rev-list --all | xargs git grep -F
