@@ -1,0 +1,12 @@
+# Required CLI tools for shell-tools
+# These will be auto-installed via Homebrew on first run (macOS)
+# One tool per line, comments start with #
+
+eza
+bat
+ripgrep
+fd
+zoxide
+fzf
+trash
+thefuck
