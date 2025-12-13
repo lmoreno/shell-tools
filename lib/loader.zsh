@@ -1,6 +1,28 @@
 # shell-tools loader
 # Cache generation and version checking
 
+# Generate git aliases file from modules/git.gitconfig
+_st_generate_git_aliases() {
+    local source_file="$SHELL_TOOLS_ROOT/modules/git.gitconfig"
+    local output_file="$SHELL_TOOLS_ROOT/cache/git-aliases"
+    local version="$1"
+
+    # Skip if no git config source file
+    [[ ! -f "$source_file" ]] && return 0
+
+    {
+        echo "# shell-tools generated git aliases"
+        echo "# Generated: $(date '+%Y-%m-%d %H:%M:%S')"
+        echo "# Version: $version"
+        echo "# DO NOT EDIT - This file is auto-generated"
+        echo "# Source: modules/git.gitconfig"
+        echo ""
+        cat "$source_file"
+    } > "$output_file"
+
+    _st_log "Git aliases generated"
+}
+
 # Check if cache needs to be regenerated
 _st_needs_regenerate() {
     local cache_file="$SHELL_TOOLS_ROOT/cache/init.zsh"
@@ -56,6 +78,9 @@ _st_generate_cache() {
 
     # Save current version
     echo "$version" > "$SHELL_TOOLS_ROOT/cache/.version"
+
+    # Generate git aliases file
+    _st_generate_git_aliases "$version"
 
     _st_success "Cache generated successfully"
 }
