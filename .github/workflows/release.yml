@@ -20,7 +20,7 @@ jobs:
 
       - name: Bundle Release
         run: |
-          zip -r shell-tools.zip . -x ".git/*" ".github/*" ".gitignore" "CLAUDE.md" ".claude/*" "tests/*" "setup-hooks.sh"
+          zip -r shell-tools.zip . -x ".git/*" ".github/*" ".gitignore" "CLAUDE.md" ".claude/*" "tests/*" "setup-hooks.sh" ".gitmodules"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
