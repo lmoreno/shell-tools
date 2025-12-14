@@ -1,0 +1,21 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Install Zsh
+        run: sudo apt-get install -y zsh
+
+      - name: Run Bats Tests
+        run: ./tests/run tests/
