@@ -67,9 +67,17 @@ curl -fsSL "$DOWNLOAD_URL" -o "$TEMP_ZIP"
 
 echo "📦 Extracting to $INSTALL_DIR"
 unzip -q "$TEMP_ZIP" -d "$TEMP_DIR"
-# GitHub zipball creates dir like: lmoreno-shell-tools-abc1234
-EXTRACTED_DIR=$(find "$TEMP_DIR" -maxdepth 1 -mindepth 1 -type d -name "*-shell-tools-*")
-mv "$EXTRACTED_DIR" "$INSTALL_DIR"
+
+# Clean up zip file to avoid moving it
+rm "$TEMP_ZIP"
+
+# Create install dir
+mkdir -p "$INSTALL_DIR"
+
+# Move contents to install dir (handling normal files and dotfiles)
+mv "$TEMP_DIR"/* "$INSTALL_DIR" 2>/dev/null || true
+mv "$TEMP_DIR"/.[!.]* "$INSTALL_DIR" 2>/dev/null || true
+
 rm -rf "$TEMP_DIR"
 
 echo "   ✓ Installed $VERSION"
