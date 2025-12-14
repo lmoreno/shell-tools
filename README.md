@@ -12,23 +12,69 @@ A minimal, personal Zsh plugin system for managing shell customizations across m
 
 ## Installation
 
-1. Clone the repository:
+### Automated Installation (Recommended)
+
+```bash
+# Clone repository
+git clone git@github.com:lmoreno/shell-tools.git ~/.shell-tools
+
+# Run installer
+~/.shell-tools/install.sh
+```
+
+The installer will:
+- Backup your ~/.zshrc with timestamp
+- Clone/update shell-tools to ~/.shell-tools
+- Add shell-tools source statement
+- Automatically configure git aliases
+
+After installation, review your ~/.zshrc and remove any duplicate aliases/functions that shell-tools already provides.
+
+### Manual Installation
+
+1. Clone:
    ```bash
    git clone git@github.com:lmoreno/shell-tools.git ~/.shell-tools
    ```
 
-2. Add to your `~/.zshrc`:
+2. Backup your .zshrc:
+   ```bash
+   cp ~/.zshrc ~/.zshrc.backup-$(date +%Y%m%d-%H%M%S)
+   ```
+
+3. Add to ~/.zshrc:
    ```zsh
    source ~/.shell-tools/plugin.zsh
    ```
 
-3. (Optional) For git aliases, add to your `~/.gitconfig`:
-   ```gitconfig
-   [include]
-       path = ~/.shell-tools/cache/git-aliases
+4. Review and remove duplicate aliases/functions from .zshrc
+
+5. Restart shell:
+   ```bash
+   exec zsh
    ```
 
-4. Restart your shell or run `source ~/.zshrc`
+### Post-Installation
+
+Verify:
+```bash
+st-version        # Shows version
+use git           # Test enhanced alias finder
+git s             # Test git aliases
+```
+
+**Note**: Git aliases are automatically configured via `~/.gitconfig` include directive. No manual git config needed!
+
+### Adding Project-Specific Aliases
+
+Keep project/machine-specific aliases in your ~/.zshrc **after** the shell-tools source line:
+
+```zsh
+source ~/.shell-tools/plugin.zsh
+
+# Your local aliases below
+alias myproject='cd ~/projects/myproject'
+```
 
 ## Usage
 

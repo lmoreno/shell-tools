@@ -23,6 +23,23 @@ _st_generate_git_aliases() {
     _st_log "Git aliases generated"
 }
 
+# Ensure git config includes shell-tools aliases
+_st_ensure_git_include() {
+    local gitconfig="$HOME/.gitconfig"
+    local git_aliases_path="$SHELL_TOOLS_ROOT/cache/git-aliases"
+
+    # Create .gitconfig if it doesn't exist
+    [[ ! -f "$gitconfig" ]] && touch "$gitconfig"
+
+    # Check if include already exists using git config command
+    local current_include=$(git config --global --get-all include.path 2>/dev/null | grep -F "$git_aliases_path")
+
+    if [[ -z "$current_include" ]]; then
+        git config --global --add include.path "$git_aliases_path"
+        _st_success "Added git aliases include to ~/.gitconfig"
+    fi
+}
+
 # Check if cache needs to be regenerated
 _st_needs_regenerate() {
     local cache_file="$SHELL_TOOLS_ROOT/cache/init.zsh"
@@ -81,6 +98,9 @@ _st_generate_cache() {
 
     # Generate git aliases file
     _st_generate_git_aliases "$version"
+
+    # Ensure git config includes shell-tools aliases
+    _st_ensure_git_include
 
     _st_success "Cache generated successfully"
 }
