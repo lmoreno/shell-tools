@@ -43,6 +43,19 @@ alias srczsh='source ~/.zshrc'
 alias reload='source ~/.zshrc'
 alias zshconf='vim ~/.zshrc'
 
+# Additional file shortcuts
+alias vzu='vim ~/.zshrc'
+alias aliases='bat ~/.shell-tools/modules/aliases.zsh'
+alias valiases='vim ~/.shell-tools/modules/aliases.zsh'
+alias zshrc='bat ~/.zshrc'
+alias vzshrc='vim ~/.zshrc'
+alias functions='bat ~/.shell-tools/modules/functions.zsh'
+alias vfunctions='vim ~/.shell-tools/modules/functions.zsh'
+alias gitconfig='bat ~/.gitconfig'
+alias vgitconfig='vim ~/.gitconfig'
+alias hosts='bat /etc/hosts'
+alias vhosts='sudo vim /etc/hosts'
+
 # =============================================================================
 # UTILITIES
 # =============================================================================
