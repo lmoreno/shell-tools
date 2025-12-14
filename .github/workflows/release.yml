@@ -1,0 +1,26 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Bundle Release
+        run: |
+          zip -r shell-tools.zip . -x ".git/*" ".github/*" ".gitignore" "CLAUDE.md" ".claude/*"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: shell-tools.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

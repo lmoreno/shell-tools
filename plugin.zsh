@@ -62,6 +62,11 @@ fi
 _st_load_module "tools"
 
 # -----------------------------------------------------------------------------
+# Load auto-updater
+# -----------------------------------------------------------------------------
+source "$SHELL_TOOLS_ROOT/lib/updater.zsh"
+
+# -----------------------------------------------------------------------------
 # User commands
 # -----------------------------------------------------------------------------
 
@@ -70,6 +75,10 @@ st-reload() {
     _st_log "Regenerating cache..."
     rm -f "$SHELL_TOOLS_ROOT/cache/init.zsh"
     rm -f "$SHELL_TOOLS_ROOT/cache/.version"
+
+    # Check for updates before reloading
+    _st_check_for_updates
+
     source "$SHELL_TOOLS_ROOT/plugin.zsh"
     _st_success "Reloaded!"
 }
