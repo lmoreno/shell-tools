@@ -3,6 +3,7 @@
 
 set -e
 
+REPO="lmoreno/shell-tools"
 INSTALL_DIR="$HOME/.shell-tools"
 ZSHRC="$HOME/.zshrc"
 BACKUP_DIR="$HOME/.zshrc.backup.$(date +%Y%m%d-%H%M%S)"
@@ -12,37 +13,55 @@ echo "  shell-tools installer"
 echo "=========================================="
 echo ""
 
+# Get latest release info from GitHub API
+echo "📡 Fetching latest version..."
+LATEST_RELEASE=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")
+VERSION=$(echo "$LATEST_RELEASE" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+DOWNLOAD_URL=$(echo "$LATEST_RELEASE" | grep '"zipball_url"' | sed -E 's/.*"([^"]+)".*/\1/')
+
+if [[ -z "$VERSION" ]] || [[ -z "$DOWNLOAD_URL" ]]; then
+    echo "❌ Failed to fetch release info"
+    exit 1
+fi
+
+echo "   Latest version: $VERSION"
+echo ""
+
 # Backup existing .zshrc
 if [[ -f "$ZSHRC" ]]; then
-    echo "📦 Backing up ~/.zshrc to $BACKUP_DIR"
+    echo "📦 Backing up ~/.zshrc"
     cp "$ZSHRC" "$BACKUP_DIR"
-    echo "   ✓ Backup created"
-else
-    echo "⚠️  No existing ~/.zshrc found"
+    echo "   ✓ Backup: $BACKUP_DIR"
 fi
 
-# Clone or update repository
+# Remove old installation if exists
 if [[ -d "$INSTALL_DIR" ]]; then
     echo ""
-    echo "📂 shell-tools exists at $INSTALL_DIR"
-    read -p "   Update? (y/n): " update
-    if [[ "$update" == "y" ]]; then
-        cd "$INSTALL_DIR" && git pull
-        echo "   ✓ Updated"
-    fi
-else
-    echo ""
-    echo "📥 Cloning to $INSTALL_DIR"
-    git clone git@github.com:lmoreno/shell-tools.git "$INSTALL_DIR"
-    echo "   ✓ Cloned"
+    echo "📂 Removing old installation"
+    rm -rf "$INSTALL_DIR"
 fi
 
-# Add shell-tools source statement
+# Download and extract release
 echo ""
-echo "📝 Adding shell-tools to ~/.zshrc"
+echo "📥 Downloading shell-tools $VERSION"
+TEMP_DIR=$(mktemp -d)
+TEMP_ZIP="$TEMP_DIR/shell-tools.zip"
+curl -fsSL "$DOWNLOAD_URL" -o "$TEMP_ZIP"
 
+echo "📦 Extracting to $INSTALL_DIR"
+unzip -q "$TEMP_ZIP" -d "$TEMP_DIR"
+# GitHub zipball creates dir like: lmoreno-shell-tools-abc1234
+EXTRACTED_DIR="$TEMP_DIR"/*-shell-tools-*
+mv "$EXTRACTED_DIR" "$INSTALL_DIR"
+rm -rf "$TEMP_DIR"
+
+echo "   ✓ Installed $VERSION"
+
+# Add to .zshrc if not already present
+echo ""
+echo "📝 Configuring ~/.zshrc"
 if grep -q "source.*shell-tools/plugin.zsh" "$ZSHRC" 2>/dev/null; then
-    echo "   ℹ️  Already sourced"
+    echo "   ℹ️  Already configured"
 else
     cat >> "$ZSHRC" << 'EOF'
 
@@ -54,24 +73,15 @@ EOF
     echo "   ✓ Added source line"
 fi
 
-# Summary
 echo ""
 echo "=========================================="
 echo "✅ Installation complete!"
 echo "=========================================="
 echo ""
+echo "Version installed: $VERSION"
+echo ""
 echo "Next steps:"
-echo "  1. Review your ~/.zshrc and remove any duplicate aliases/functions"
-echo "     (shell-tools provides: git/docker/npm aliases, eza/bat/rg, etc.)"
+echo "  1. Review ~/.zshrc for duplicate aliases"
 echo "  2. Restart shell: exec zsh"
 echo "  3. Verify: st-version"
-echo ""
-echo "Backup location: $BACKUP_DIR"
-echo ""
-echo "Customization:"
-echo "  • Edit aliases: vim ~/.shell-tools/modules/aliases.zsh"
-echo "  • Edit functions: vim ~/.shell-tools/modules/functions.zsh"
-echo "  • After changes: st-reload"
-echo ""
-echo "Tip: Keep project-specific aliases in ~/.zshrc after the source line"
 echo ""

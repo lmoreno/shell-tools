@@ -12,44 +12,28 @@ A minimal, personal Zsh plugin system for managing shell customizations across m
 
 ## Installation
 
-### Automated Installation (Recommended)
+### One-Line Install (Recommended)
 
 ```bash
-# Clone repository
-git clone git@github.com:lmoreno/shell-tools.git ~/.shell-tools
-
-# Run installer
-~/.shell-tools/install.sh
+curl -fsSL https://raw.githubusercontent.com/lmoreno/shell-tools/main/install.sh | bash
 ```
 
-The installer will:
-- Backup your ~/.zshrc with timestamp
-- Clone/update shell-tools to ~/.shell-tools
-- Add shell-tools source statement
-- Automatically configure git aliases
-
-After installation, review your ~/.zshrc and remove any duplicate aliases/functions that shell-tools already provides.
+This will:
+- Download the latest release
+- Install to ~/.shell-tools
+- Configure your ~/.zshrc
+- Backup your existing .zshrc
 
 ### Manual Installation
 
-1. Clone:
+1. Download the install script:
    ```bash
-   git clone git@github.com:lmoreno/shell-tools.git ~/.shell-tools
+   curl -fsSL https://raw.githubusercontent.com/lmoreno/shell-tools/main/install.sh -o /tmp/install-shell-tools.sh
+   chmod +x /tmp/install-shell-tools.sh
+   /tmp/install-shell-tools.sh
    ```
 
-2. Backup your .zshrc:
-   ```bash
-   cp ~/.zshrc ~/.zshrc.backup-$(date +%Y%m%d-%H%M%S)
-   ```
-
-3. Add to ~/.zshrc:
-   ```zsh
-   source ~/.shell-tools/plugin.zsh
-   ```
-
-4. Review and remove duplicate aliases/functions from .zshrc
-
-5. Restart shell:
+2. Restart shell:
    ```bash
    exec zsh
    ```
@@ -74,6 +58,44 @@ source ~/.shell-tools/plugin.zsh
 
 # Your local aliases below
 alias myproject='cd ~/projects/myproject'
+```
+
+## Updates
+
+shell-tools automatically checks for updates on every `st-reload` by default.
+
+### Update Configuration
+
+Control update checking by setting in your ~/.zshrc:
+
+```zsh
+# Check on every st-reload (default)
+export SHELL_TOOLS_UPDATE_CHECK="always"
+
+# Check once per day
+export SHELL_TOOLS_UPDATE_CHECK="daily"
+
+# Check once per week
+export SHELL_TOOLS_UPDATE_CHECK="weekly"
+
+# Never auto-check
+export SHELL_TOOLS_UPDATE_CHECK="never"
+```
+
+### Manual Update
+
+```bash
+st-update    # Check and install updates manually
+```
+
+## Uninstallation
+
+```bash
+# Remove installation
+rm -rf ~/.shell-tools
+
+# Remove from ~/.zshrc
+# Delete the line: source ~/.shell-tools/plugin.zsh
 ```
 
 ## Usage
