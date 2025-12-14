@@ -51,7 +51,7 @@ curl -fsSL "$DOWNLOAD_URL" -o "$TEMP_ZIP"
 echo "📦 Extracting to $INSTALL_DIR"
 unzip -q "$TEMP_ZIP" -d "$TEMP_DIR"
 # GitHub zipball creates dir like: lmoreno-shell-tools-abc1234
-EXTRACTED_DIR="$TEMP_DIR"/*-shell-tools-*
+EXTRACTED_DIR=$(find "$TEMP_DIR" -maxdepth 1 -mindepth 1 -type d -name "*-shell-tools-*")
 mv "$EXTRACTED_DIR" "$INSTALL_DIR"
 rm -rf "$TEMP_DIR"
 
