@@ -114,7 +114,8 @@ add-alias() {
 
     echo "alias $alias_name='$alias_cmd'" >> "$aliases_file"
     echo "✓ Added: alias $alias_name='$alias_cmd'"
-    echo "Run 'st-reload' to apply"
+    st-reload
+    echo "✓ Alias loaded and ready to use"
 }
 
 # Remove alias from shell-tools
@@ -138,7 +139,8 @@ remove-alias() {
     if [[ "$confirm" == "y" ]]; then
         sed -i.bak "/^alias $alias_name=/d" "$aliases_file"
         echo "✓ Removed alias '$alias_name'"
-        echo "Run 'st-reload' to apply"
+        st-reload
+        echo "✓ Alias unloaded and removed"
     else
         echo "Cancelled."
     fi
