@@ -17,7 +17,23 @@ echo ""
 echo "📡 Fetching latest version..."
 LATEST_RELEASE_JSON=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")
 VERSION=$(echo "$LATEST_RELEASE_JSON" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
-DOWNLOAD_URL=$(echo "$LATEST_RELEASE_JSON" | grep -oP '"browser_download_url": "\K[^"]*shell-tools.zip"' | head -1)
+DOWNLOAD_URL=$(
+  echo "$LATEST_RELEASE_JSON" |
+  awk '
+    /"name": *"shell-tools.zip"/ {
+      asset_block = 1;
+      next;
+    }
+    asset_block == 1 {
+      if (/"browser_download_url":/) {
+        sub(/.*"browser_download_url": "/, "");
+        sub(/".*/, "");
+        print;
+        asset_block = 0;
+      }
+    }
+  '
+)
 
 if [[ -z "$VERSION" ]] || [[ -z "$DOWNLOAD_URL" ]]; then
     echo "❌ Failed to fetch release info or custom asset URL"
