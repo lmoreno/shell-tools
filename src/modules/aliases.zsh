@@ -152,19 +152,27 @@ alias yb='yarn build'
 alias yd='yarn dev'
 
 # =============================================================================
-# macOS SPECIFIC
+# OS SPECIFIC & NETWORK
 # =============================================================================
 
-alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
-alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
-alias cleanup='find . -name ".DS_Store" -delete'
-alias update='brew update && brew upgrade && brew cleanup'
+if [[ "$OSTYPE" == darwin* ]]; then
+    # macOS
+    alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
+    alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
+    alias cleanup='find . -name ".DS_Store" -delete'
+    alias update='brew update && brew upgrade && brew cleanup'
+    alias localip='ipconfig getifaddr en0'
+elif [[ "$OSTYPE" == linux* ]]; then
+    # Linux
+    if command -v apt-get &>/dev/null; then
+        alias update='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y'
+    fi
+    alias localip='hostname -I | awk "{print \$1}"'
+    alias open='xdg-open'
+    alias pbcopy='xclip -selection clipboard'
+    alias pbpaste='xclip -selection clipboard -o'
+fi
 
-# =============================================================================
-# NETWORK UTILITIES
-# =============================================================================
-
-alias localip='ipconfig getifaddr en0'
 alias publicip='curl -s https://api.ipify.org'
 alias speedtest='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -'
 
