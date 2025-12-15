@@ -40,61 +40,99 @@ setup() {
     assert_failure
 }
 
+@test "Updater: extracts asset URL from release JSON using awk" {
+    # Create mock GitHub API JSON response
+    local mock_json='
+{
+  "tag_name": "v2.5.7",
+  "assets": [
+    {
+      "name": "shell-tools.zip",
+      "browser_download_url": "https://github.com/lmoreno/shell-tools/releases/download/v2.5.7/shell-tools.zip"
+    }
+  ]
+}
+'
+
+    # Test the awk extraction logic
+    run bash -c "
+        echo '$mock_json' | awk '
+            /\"name\": *\"shell-tools.zip\"/ {
+                asset_block = 1;
+                next;
+            }
+            asset_block == 1 {
+                if (/\"browser_download_url\":/) {
+                    sub(/.*\"browser_download_url\": \"/, \"\");
+                    sub(/\".*/, \"\");
+                    print;
+                    asset_block = 0;
+                }
+            }
+        '
+    "
+
+    assert_success
+    assert_output "https://github.com/lmoreno/shell-tools/releases/download/v2.5.7/shell-tools.zip"
+}
+
+@test "Updater: fails gracefully when asset not found in JSON" {
+    local mock_json='
+{
+  "tag_name": "v2.5.7",
+  "assets": [
+    {
+      "name": "other-file.zip",
+      "browser_download_url": "https://example.com/other.zip"
+    }
+  ]
+}
+'
+
+    # Should return empty when shell-tools.zip not found
+    run bash -c "
+        echo '$mock_json' | awk '
+            /\"name\": *\"shell-tools.zip\"/ {
+                asset_block = 1;
+                next;
+            }
+            asset_block == 1 {
+                if (/\"browser_download_url\":/) {
+                    sub(/.*\"browser_download_url\": \"/, \"\");
+                    sub(/\".*/, \"\");
+                    print;
+                    asset_block = 0;
+                }
+            }
+        '
+    "
+
+    assert_success
+    assert_output ""
+}
+
 @test "Updater: extraction detects flat ZIP structure" {
-    # Create a mock flat ZIP structure (like release.yml creates)
+    # Create a mock flat ZIP structure (release assets always have flat structure)
     local temp_dir=$(mktemp -d)
     mkdir -p "$temp_dir/lib"
     echo "test" > "$temp_dir/VERSION"
 
-    # Test the extraction directory detection logic
+    # Test validation of flat structure
     run zsh -c "
-        source $HOME/.shell-tools/plugin.zsh 2>/dev/null
+        source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1
         temp_dir='$temp_dir'
 
-        # Simulate the extraction detection logic
-        local extracted_dir
-        if [[ -d \"\$temp_dir\"/lib ]]; then
-            extracted_dir=\"\$temp_dir\"
-        else
-            extracted_dir=\"\$temp_dir\"/*-shell-tools-*
-        fi
+        # Simulate the extraction logic (always flat for release assets)
+        local extracted_dir=\"\$temp_dir\"
 
-        echo \"\$extracted_dir\"
-    "
-
-    assert_success
-    assert_output --partial "$temp_dir"
-
-    rm -rf "$temp_dir"
-}
-
-@test "Updater: extraction detects wrapped ZIP structure" {
-    # Create a mock wrapped ZIP structure (like GitHub zipball)
-    local temp_dir=$(mktemp -d)
-    mkdir -p "$temp_dir/lmoreno-shell-tools-abc123/lib"
-    echo "test" > "$temp_dir/lmoreno-shell-tools-abc123/VERSION"
-
-    # Test the extraction directory detection logic
-    run zsh -c "
-        source $HOME/.shell-tools/plugin.zsh 2>/dev/null
-        temp_dir='$temp_dir'
-
-        # Simulate the extraction detection logic
-        local extracted_dir
-        if [[ -d \"\$temp_dir\"/lib ]]; then
-            extracted_dir=\"\$temp_dir\"
-        else
-            extracted_dir=\"\$temp_dir\"/*-shell-tools-*
-        fi
-
-        # Check if extracted_dir exists and has VERSION
-        if [[ -d \"\$extracted_dir\" ]] && [[ -f \"\$extracted_dir/VERSION\" ]]; then
-            echo \"success\"
+        # Validate
+        if [[ -d \"\$extracted_dir/lib\" ]] && [[ -f \"\$extracted_dir/VERSION\" ]]; then
+            echo \"valid\"
         fi
     "
 
     assert_success
-    assert_output --partial "success"
+    assert_output "valid"
 
     rm -rf "$temp_dir"
 }
