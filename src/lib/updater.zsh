@@ -62,16 +62,35 @@ _st_perform_update() {
     local temp_dir=$(mktemp -d)
     local zip_file="$temp_dir/shell-tools.zip"
 
-    # Download latest release
+    # Download latest release asset (shell-tools.zip)
     local download_url="https://api.github.com/repos/$SHELL_TOOLS_REPO/releases/latest"
-    local zipball_url=$(curl -fsSL "$download_url" | grep '"zipball_url"' | sed -E 's/.*"([^"]+)".*/\1/')
+    local latest_release_json=$(curl -fsSL "$download_url")
 
-    if [[ -z "$zipball_url" ]]; then
+    # Extract asset download URL using awk (matches install.sh)
+    local asset_url=$(
+        echo "$latest_release_json" |
+        awk '
+            /"name": *"shell-tools.zip"/ {
+                asset_block = 1;
+                next;
+            }
+            asset_block == 1 {
+                if (/"browser_download_url":/) {
+                    sub(/.*"browser_download_url": "/, "");
+                    sub(/".*/, "");
+                    print;
+                    asset_block = 0;
+                }
+            }
+        '
+    )
+
+    if [[ -z "$asset_url" ]]; then
         _st_error "Failed to fetch download URL"
         return 1
     fi
 
-    curl -fsSL "$zipball_url" -o "$zip_file" || {
+    curl -fsSL "$asset_url" -o "$zip_file" || {
         _st_error "Download failed"
         rm -rf "$temp_dir"
         return 1
@@ -81,21 +100,12 @@ _st_perform_update() {
     _st_log "Backing up your customizations..."
     cp -r "$SHELL_TOOLS_ROOT/modules" "$temp_dir/modules.backup" 2>/dev/null || true
 
-    # Extract new version
+    # Extract new version (release asset always has flat structure)
     unzip -q "$zip_file" -d "$temp_dir"
-
-    # Detect extraction directory (handles both flat and wrapped structures)
-    local extracted_dir
-    if [[ -d "$temp_dir"/lib ]]; then
-        # Flat structure (release.yml zip)
-        extracted_dir="$temp_dir"
-    else
-        # Wrapped structure (GitHub zipball)
-        extracted_dir="$temp_dir"/*-shell-tools-*
-    fi
+    local extracted_dir="$temp_dir"
 
     # Validate extraction
-    if [[ ! -d "$extracted_dir" ]] || [[ ! -f "$extracted_dir/VERSION" ]]; then
+    if [[ ! -d "$extracted_dir/lib" ]] || [[ ! -f "$extracted_dir/VERSION" ]]; then
         _st_error "Failed to extract release"
         rm -rf "$temp_dir"
         return 1
