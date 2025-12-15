@@ -7,6 +7,23 @@ if command -v eza &>/dev/null; then
     alias ls='eza --icons --git --group-directories-first'
     alias ll='eza -l --icons --git --group-directories-first'
     alias la='eza -la --icons --git --group-directories-first'
+else
+    # Fallback to standard ls with platform-specific options
+    if [[ "$OSTYPE" == darwin* ]]; then
+        # macOS (BSD ls)
+        alias ls='ls -GFh'
+        alias ll='ls -lGFh'
+        alias la='ls -lAGFh'
+    elif [[ "$OSTYPE" == linux* ]]; then
+        # Linux (GNU ls)
+        alias ls='ls --color=auto -Fh'
+        alias ll='ls -l --color=auto -Fh'
+        alias la='ls -lA --color=auto -Fh'
+    else
+        # Generic fallback for other Unix systems
+        alias ll='ls -l'
+        alias la='ls -lA'
+    fi
 fi
 
 # bat (cat replacement)
