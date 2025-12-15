@@ -15,6 +15,10 @@ common_setup() {
     # Project root (assuming tests/ is one level deep)
     PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
     export PROJECT_ROOT
+
+    # Source files are in src/ during development
+    SRC_ROOT="$PROJECT_ROOT/src"
+    export SRC_ROOT
 }
 
 teardown() {

@@ -7,3 +7,6 @@ cache/
 # IDE
 .idea/
 .vscode/
+
+# Claude
+.claude/*local*
