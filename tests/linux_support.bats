@@ -33,6 +33,9 @@ EOF
 
     run zsh <<'EOF'
         OSTYPE=linux-gnu
+        # Mock xclip so aliases are generated
+        xclip() { :; }
+        
         source $HOME/.shell-tools/modules/aliases.zsh
         alias pbcopy
 EOF
