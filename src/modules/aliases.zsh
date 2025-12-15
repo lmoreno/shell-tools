@@ -167,7 +167,7 @@ elif [[ "$OSTYPE" == linux* ]]; then
     if command -v apt-get &>/dev/null; then
         alias update='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y'
     fi
-    alias localip='hostname -I | awk "{print \$1}"'
+    alias localip='hostname -I | awk "{ print \$1 }"'
     alias open='xdg-open'
     alias pbcopy='xclip -selection clipboard'
     alias pbpaste='xclip -selection clipboard -o'

@@ -58,15 +58,22 @@ _st_bootstrap() {
             # Check sudo access
             local sudo_cmd=""
             if [[ $EUID -ne 0 ]]; then
-                # Check if we can use sudo (either cached credential or passwordless)
-                # or strictly just check if command exists, as user might type password.
                 if command -v sudo &>/dev/null; then
-                     sudo_cmd="sudo"
+                    # Check if sudo can run without a password (non-interactive)
+                    if sudo -n true &>/dev/null; then
+                        sudo_cmd="sudo"
+                    else
+                        _st_warn "Sudo requires a password and cannot run non-interactively."
+                        _st_warn "Please install tools manually or configure sudoers for passwordless access."
+                        _st_warn "  Missing: ${missing[*]}"
+                        mkdir -p "$SHELL_TOOLS_ROOT/cache"
+                        return 0
+                    fi
                 else
-                     _st_warn "No sudo found. Skipping auto-installation."
-                     _st_warn "Please manually install: ${missing[*]}"
-                     mkdir -p "$SHELL_TOOLS_ROOT/cache"
-                     return 0
+                    _st_warn "No sudo command found. Skipping auto-installation."
+                    _st_warn "Please manually install: ${missing[*]}"
+                    mkdir -p "$SHELL_TOOLS_ROOT/cache"
+                    return 0
                 fi
             fi
 
