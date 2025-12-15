@@ -3,7 +3,17 @@
 # =============================================================================
 
 # Add trash to PATH (keg-only, not symlinked by Homebrew)
-export PATH="/opt/homebrew/opt/trash/bin:$PATH"
+if [[ -d "/opt/homebrew/opt/trash/bin" ]]; then
+    export PATH="/opt/homebrew/opt/trash/bin:$PATH"
+fi
+
+# =============================================================================
+# PROMPT
+# =============================================================================
+# Simple, clean prompt if not already set or if using default broken prompt.
+if [[ -z "$PROMPT" ]] || [[ "$PROMPT" == *"\u"* ]]; then
+    PROMPT='%F{green}%n@%m%f:%F{blue}%~%f %# '
+fi
 
 # =============================================================================
 # FZF CONFIGURATION
@@ -11,9 +21,19 @@ export PATH="/opt/homebrew/opt/trash/bin:$PATH"
 
 # Use fd for better file finding (if available)
 if command -v fd &> /dev/null; then
-    export FZF_DEFAULT_COMMAND='/opt/homebrew/bin/fd --type file --hidden --follow --exclude .git'
+    # Check common locations or just use 'fd'
+    if [[ -x "/opt/homebrew/bin/fd" ]]; then
+        export FZF_DEFAULT_COMMAND='/opt/homebrew/bin/fd --type file --hidden --follow --exclude .git'
+    else
+        export FZF_DEFAULT_COMMAND='fd --type file --hidden --follow --exclude .git'
+    fi
     export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-    export FZF_ALT_C_COMMAND='/opt/homebrew/bin/fd --type directory --hidden --follow --exclude .git'
+    
+    if [[ -x "/opt/homebrew/bin/fd" ]]; then
+        export FZF_ALT_C_COMMAND='/opt/homebrew/bin/fd --type directory --hidden --follow --exclude .git'
+    else
+        export FZF_ALT_C_COMMAND='fd --type directory --hidden --follow --exclude .git'
+    fi
 fi
 
 # Better FZF defaults
@@ -31,12 +51,13 @@ export FZF_DEFAULT_OPTS='
 # DOCKER / COLIMA CONFIGURATION
 # =============================================================================
 
-export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
+if command -v colima &> /dev/null; then
+    export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
 
-# Testcontainers needs to know how to resolve the Colima host
-# Note: This runs at shell startup, may slow things down slightly
-if command -v colima &> /dev/null && command -v jq &> /dev/null; then
-    export TESTCONTAINERS_HOST_OVERRIDE=$(colima ls -j 2>/dev/null | jq -r '.address // empty')
+    # Testcontainers needs to know how to resolve the Colima host
+    if command -v jq &> /dev/null; then
+        export TESTCONTAINERS_HOST_OVERRIDE=$(colima ls -j 2>/dev/null | jq -r '.address // empty')
+    fi
 fi
 
 # For containers to communicate with Docker

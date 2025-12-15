@@ -11,18 +11,18 @@ take() {
 ex() {
     if [ -f "$1" ]; then
         case "$1" in
-            *.tar.bz2)   tar xjf "$1"    ;;
-            *.tar.gz)    tar xzf "$1"    ;;
-            *.bz2)       bunzip2 "$1"    ;;
-            *.rar)       unrar x "$1"    ;;
-            *.gz)        gunzip "$1"     ;;
-            *.tar)       tar xf "$1"     ;;
-            *.tbz2)      tar xjf "$1"    ;;
-            *.tgz)       tar xzf "$1"    ;;
-            *.zip)       unzip "$1"      ;;
-            *.Z)         uncompress "$1" ;;
-            *.7z)        7z x "$1"       ;;
-            *)           echo "'$1' cannot be extracted" ;;
+            *.tar.bz2)   tar xjf "$1"    ;; 
+            *.tar.gz)    tar xzf "$1"    ;; 
+            *.bz2)       bunzip2 "$1"    ;; 
+            *.rar)       unrar x "$1"    ;; 
+            *.gz)        gunzip "$1"     ;; 
+            *.tar)       tar xf "$1"     ;; 
+            *.tbz2)      tar xjf "$1"    ;; 
+            *.tgz)       tar xzf "$1"    ;; 
+            *.zip)       unzip "$1"      ;; 
+            *.Z)         uncompress "$1" ;; 
+            *.7z)        7z x "$1"       ;; 
+            *)           echo "'$1' cannot be extracted" ;; 
         esac
     else
         echo "'$1' is not a valid file"
@@ -31,6 +31,10 @@ ex() {
 
 # Kill process by port number
 killport() {
+    if ! command -v lsof &>/dev/null; then
+        echo "Error: 'lsof' is required."
+        return 1
+    fi
     lsof -ti:$1 | xargs kill -9
 }
 
@@ -41,6 +45,10 @@ backup() {
 
 # Open directory in VS Code and cd into it
 c() {
+    if ! command -v code &>/dev/null; then
+        echo "Error: 'code' (VS Code) is required."
+        return 1
+    fi
     code "$1" && cd "$1"
 }
 
@@ -59,6 +67,12 @@ alias-search() {
 # When you select an alias, it's inserted into your command line ready to execute!
 unalias use 2>/dev/null
 use() {
+    if ! command -v fzf &>/dev/null; then
+        echo "Error: 'fzf' is required for this command."
+        echo "Please install it via your package manager or homebrew."
+        return 1
+    fi
+
     local selection
 
     # Format aliases with colors: bold cyan alias → command
@@ -104,7 +118,8 @@ add-alias() {
     local aliases_file="$SHELL_TOOLS_ROOT/modules/aliases.zsh"
 
     # Check if alias already exists
-    if grep -q "^alias $alias_name=" "$aliases_file" 2>/dev/null; then
+    if grep -q "^alias $alias_name=" "$aliases_file" 2>/dev/null;
+ then
         echo "Alias '$alias_name' already exists"
         echo "Current: $(grep "^alias $alias_name=" "$aliases_file")"
         read "overwrite?Overwrite? (y/n): "
@@ -128,7 +143,8 @@ remove-alias() {
     local alias_name="$1"
     local aliases_file="$SHELL_TOOLS_ROOT/modules/aliases.zsh"
 
-    if ! grep -q "^alias $alias_name=" "$aliases_file" 2>/dev/null; then
+    if ! grep -q "^alias $alias_name=" "$aliases_file" 2>/dev/null;
+ then
         echo "Alias '$alias_name' not found"
         return 1
     fi
