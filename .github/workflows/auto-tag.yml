@@ -1,21 +1,36 @@
 name: Auto Tag
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Tests"]
+    types:
+      - completed
     branches:
       - main
-    paths:
-      - 'src/VERSION'
 
 jobs:
   tag:
     runs-on: ubuntu-latest
+    # Only run if the Tests workflow succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.PAT_TOKEN }}
 
+      - name: Check if VERSION changed
+        id: version_check
+        run: |
+          # Check if src/VERSION was modified in the triggering commit
+          if git diff --name-only HEAD^..HEAD | grep -q "^src/VERSION$"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "VERSION file not changed, skipping tag creation"
+          fi
+
       - name: Create and Push Tag
+        if: steps.version_check.outputs.changed == 'true'
         run: |
           VERSION=$(cat src/VERSION | tr -d '[:space:]')
           TAG_NAME="v$VERSION"
