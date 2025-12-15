@@ -6,7 +6,12 @@
 alias ls='eza --icons --git --group-directories-first'
 alias ll='eza -l --icons --git --group-directories-first'
 alias la='eza -la --icons --git --group-directories-first'
-alias cat='bat --paging=never --style=changes'
+
+# Only alias cat if bat is available
+if command -v bat &>/dev/null; then
+    alias cat='bat --paging=never --style=changes'
+fi
+
 alias grep='rg'
 # NOTE: Don't alias find='fd' - it breaks scripts that rely on standard find syntax
 # Use 'fd' directly or the 'ff' alias below
