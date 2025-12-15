@@ -20,8 +20,12 @@ setup() {
     # Initial load
     run zsh -c "source $HOME/.shell-tools/plugin.zsh"
 
-    # Get cache modification time
-    CACHE_TIME=$(stat -f %m "$HOME/.shell-tools/cache/init.zsh")
+    # Get cache modification time (cross-platform: macOS uses -f, Linux uses -c)
+    if stat -f %m "$HOME/.shell-tools/cache/init.zsh" &>/dev/null; then
+        CACHE_TIME=$(stat -f %m "$HOME/.shell-tools/cache/init.zsh")
+    else
+        CACHE_TIME=$(stat -c %Y "$HOME/.shell-tools/cache/init.zsh")
+    fi
 
     # Change VERSION
     echo "9.9.9" > "$HOME/.shell-tools/VERSION"
@@ -30,8 +34,12 @@ setup() {
     # Reload
     run zsh -c "source $HOME/.shell-tools/plugin.zsh"
 
-    # Cache should be newer
-    NEW_CACHE_TIME=$(stat -f %m "$HOME/.shell-tools/cache/init.zsh")
+    # Cache should be newer (cross-platform)
+    if stat -f %m "$HOME/.shell-tools/cache/init.zsh" &>/dev/null; then
+        NEW_CACHE_TIME=$(stat -f %m "$HOME/.shell-tools/cache/init.zsh")
+    else
+        NEW_CACHE_TIME=$(stat -c %Y "$HOME/.shell-tools/cache/init.zsh")
+    fi
     assert [ "$NEW_CACHE_TIME" -gt "$CACHE_TIME" ]
 }
 

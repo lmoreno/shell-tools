@@ -29,10 +29,14 @@ setup() {
     # Add test alias first
     echo "alias testcmd='echo hello'" >> "$HOME/.shell-tools/modules/aliases.zsh"
 
-    # Remove it
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh && echo 'y' | remove-alias testcmd"
+    # Verify it exists before removal
+    run grep "alias testcmd=" "$HOME/.shell-tools/modules/aliases.zsh"
+    assert_success
 
-    # Verify removal
+    # Remove it (using printf for better pipe handling)
+    run zsh -c "source $HOME/.shell-tools/plugin.zsh && printf 'y\\n' | remove-alias testcmd"
+
+    # Verify removal - alias line should not exist
     run grep "alias testcmd=" "$HOME/.shell-tools/modules/aliases.zsh"
     assert_failure
 }
