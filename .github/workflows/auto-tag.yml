@@ -21,9 +21,17 @@ jobs:
       - name: Check if VERSION changed
         id: version_check
         run: |
-          # Check if src/VERSION was modified in the triggering commit
-          if git diff --name-only HEAD^..HEAD | grep -q "^src/VERSION$"; then
+          # Get the commit SHA that triggered the Tests workflow
+          COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
+          echo "Checking commit: $COMMIT_SHA"
+
+          # Fetch enough history to diff
+          git fetch --depth=2 origin main
+
+          # Check if src/VERSION was modified in that commit
+          if git diff --name-only ${COMMIT_SHA}^..${COMMIT_SHA} 2>/dev/null | grep -q "^src/VERSION$"; then
             echo "changed=true" >> $GITHUB_OUTPUT
+            echo "VERSION file was changed in commit $COMMIT_SHA"
           else
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "VERSION file not changed, skipping tag creation"
