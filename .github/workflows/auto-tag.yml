@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'VERSION'
+      - 'src/VERSION'
 
 jobs:
   tag:
@@ -17,7 +17,7 @@ jobs:
 
       - name: Create and Push Tag
         run: |
-          VERSION=$(cat VERSION | tr -d '[:space:]')
+          VERSION=$(cat src/VERSION | tr -d '[:space:]')
           TAG_NAME="v$VERSION"
           
           if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
