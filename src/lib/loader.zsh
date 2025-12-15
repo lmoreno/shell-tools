@@ -78,7 +78,7 @@ _st_generate_cache() {
         echo ""
 
         # Static modules that can be cached (no evals)
-        local static_modules=(aliases functions env completions)
+        local static_modules=(aliases functions env completions local)
 
         for module in "${static_modules[@]}"; do
             local file="$SHELL_TOOLS_ROOT/modules/${module}.zsh"
