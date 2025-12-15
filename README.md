@@ -190,6 +190,45 @@ The following are auto-installed if missing:
 - `trash` - Safe delete to trash
 - `thefuck` - Command correction
 
+## Development
+
+### Project Structure
+
+Source files are in `src/` during development. Release ZIPs contain these files at root for backward compatibility.
+
+### Local Testing
+
+Test the plugin from source:
+```bash
+source ~/projects/shell-tools/src/plugin.zsh
+st-version
+```
+
+### Running Tests
+
+```bash
+make test                   # Run all tests
+bats tests/features.bats    # Run specific test file
+```
+
+### Version Bumping
+
+```bash
+make bump-patch            # 2.3.0 -> 2.3.1
+make bump-minor            # 2.3.0 -> 2.4.0
+make bump-major            # 2.3.0 -> 3.0.0
+```
+
+### Creating Releases
+
+After making changes:
+1. Bump version: `make bump-minor`
+2. Commit: `git add src/VERSION && git commit -m "chore: bump version"`
+3. Tag: `git tag v2.4.0 && git push origin main --tags`
+4. GitHub Actions automatically creates release
+
+**Note:** install.sh remains at project root (not in src/) to maintain the curl installation URL.
+
 ## License
 
 MIT

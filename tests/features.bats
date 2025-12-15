@@ -7,11 +7,11 @@ setup() {
     
     # Manual Install of LOCAL code to sandbox
     mkdir -p "$HOME/.shell-tools"
-    cp -r "$PROJECT_ROOT/lib" "$HOME/.shell-tools/"
-    cp -r "$PROJECT_ROOT/modules" "$HOME/.shell-tools/"
-    cp -r "$PROJECT_ROOT/tools" "$HOME/.shell-tools/"
-    cp "$PROJECT_ROOT/plugin.zsh" "$HOME/.shell-tools/"
-    cp "$PROJECT_ROOT/VERSION" "$HOME/.shell-tools/"
+    cp -r "$SRC_ROOT/lib" "$HOME/.shell-tools/"
+    cp -r "$SRC_ROOT/modules" "$HOME/.shell-tools/"
+    cp -r "$SRC_ROOT/tools" "$HOME/.shell-tools/"
+    cp "$SRC_ROOT/plugin.zsh" "$HOME/.shell-tools/"
+    cp "$SRC_ROOT/VERSION" "$HOME/.shell-tools/"
     
     # Create required cache dir
     mkdir -p "$HOME/.shell-tools/cache"

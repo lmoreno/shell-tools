@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 # shell-tools installation script
+#
+# NOTE: This file must remain at the repository root (not in src/)
+# to maintain the curl installation URL:
+# curl -fsSL https://raw.githubusercontent.com/lmoreno/shell-tools/main/install.sh | bash
+#
 
 set -e
 
