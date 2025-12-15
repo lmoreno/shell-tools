@@ -66,6 +66,9 @@ _st_load_module "tools"
 # -----------------------------------------------------------------------------
 source "$SHELL_TOOLS_ROOT/lib/updater.zsh"
 
+# Check for updates on shell initialization (respects frequency setting)
+_st_check_for_updates
+
 # -----------------------------------------------------------------------------
 # User commands
 # -----------------------------------------------------------------------------

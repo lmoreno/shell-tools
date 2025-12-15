@@ -83,11 +83,39 @@ _st_perform_update() {
 
     # Extract new version
     unzip -q "$zip_file" -d "$temp_dir"
-    local extracted_dir="$temp_dir"/*-shell-tools-*
 
-    # Replace installation (keep cache)
-    rm -rf "$SHELL_TOOLS_ROOT"/{lib,modules,tools,*.zsh,*.sh,VERSION,*.md}
+    # Detect extraction directory (handles both flat and wrapped structures)
+    local extracted_dir
+    if [[ -d "$temp_dir"/lib ]]; then
+        # Flat structure (release.yml zip)
+        extracted_dir="$temp_dir"
+    else
+        # Wrapped structure (GitHub zipball)
+        extracted_dir="$temp_dir"/*-shell-tools-*
+    fi
+
+    # Validate extraction
+    if [[ ! -d "$extracted_dir" ]] || [[ ! -f "$extracted_dir/VERSION" ]]; then
+        _st_error "Failed to extract release"
+        rm -rf "$temp_dir"
+        return 1
+    fi
+
+    # Replace installation (keep cache) - use explicit paths
+    rm -rf "$SHELL_TOOLS_ROOT/lib" 2>/dev/null
+    rm -rf "$SHELL_TOOLS_ROOT/modules" 2>/dev/null
+    rm -rf "$SHELL_TOOLS_ROOT/tools" 2>/dev/null
+    rm -f "$SHELL_TOOLS_ROOT/plugin.zsh" 2>/dev/null
+    rm -f "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null
+
+    # Copy new files
     cp -r "$extracted_dir"/* "$SHELL_TOOLS_ROOT"/
+
+    # Verify VERSION was updated correctly
+    local installed_version=$(cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null | tr -d '[:space:]')
+    if [[ "$installed_version" != "${new_version#v}" ]]; then
+        _st_warn "VERSION file mismatch after install: expected ${new_version#v}, got $installed_version"
+    fi
 
     # Restore user's module customizations if they exist
     # (This is a simple approach - could be smarter about merging)
