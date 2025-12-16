@@ -26,8 +26,8 @@ _st_has_framework_prompt() {
     # Powerlevel10k detection
     [[ -n "$POWERLEVEL9K_MODE" ]] && return 0
 
-    # Generic: if PROMPT is already richly configured (contains colors/git info)
-    [[ "$PROMPT" == *"%F{"* ]] || [[ "$PROMPT" == *"$(__git_ps1)"* ]] && return 0
+    # Generic: if PROMPT is already richly configured (contains colors)
+    [[ "$PROMPT" == *"%F{"* ]] && return 0
 
     return 1
 }
