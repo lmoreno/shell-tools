@@ -164,8 +164,8 @@ _st_check_for_updates() {
 
         if [[ "$update" =~ ^[Yy]$ ]]; then
             _st_perform_update "$latest_version" && {
-                _st_log "Reloading with new version..."
-                source "$SHELL_TOOLS_ROOT/plugin.zsh"
+                _st_log "Reloading shell with new version..."
+                exec zsh
             }
         else
             echo "   Skipped. Run 'st-update' later to update."
@@ -189,7 +189,8 @@ st-update() {
 
         if [[ "$update" =~ ^[Yy]$ ]]; then
             _st_perform_update "$latest_version" && {
-                _st_success "Updated! Restart your shell: exec zsh"
+                _st_log "Reloading shell with new version..."
+                exec zsh
             }
         fi
     else
