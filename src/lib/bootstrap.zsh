@@ -128,5 +128,111 @@ _st_bootstrap() {
     # Create cache directory
     mkdir -p "$SHELL_TOOLS_ROOT/cache"
 
+    # Bootstrap Oh-My-Zsh if needed
+    _st_bootstrap_omz
+
     return 0
+}
+
+# Bootstrap Oh-My-Zsh and Spaceship theme
+_st_bootstrap_omz() {
+    local omz_dir="${ZSH:-$HOME/.oh-my-zsh}"
+
+    # Check if Oh-My-Zsh is already installed
+    if [[ -d "$omz_dir" ]]; then
+        _st_log "Oh-My-Zsh already installed at $omz_dir"
+        return 0
+    fi
+
+    # Automatically install Oh-My-Zsh
+    _st_log "Installing Oh-My-Zsh with Spaceship theme..."
+
+    # Use official installer in unattended mode
+    export RUNZSH=no
+    export KEEP_ZSHRC=yes
+
+    if sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" 2>/dev/null; then
+        _st_success "Oh-My-Zsh installed successfully"
+    else
+        _st_error "Failed to install Oh-My-Zsh"
+        return 1
+    fi
+
+    # Install Spaceship theme
+    _st_log "Installing Spaceship prompt theme..."
+    local custom_themes="${ZSH_CUSTOM:-$omz_dir/custom}/themes"
+
+    if git clone https://github.com/spaceship-prompt/spaceship-prompt.git "$custom_themes/spaceship-prompt" --depth=1 2>/dev/null; then
+        ln -sf "$custom_themes/spaceship-prompt/spaceship.zsh-theme" "$custom_themes/spaceship.zsh-theme"
+        _st_success "Spaceship theme installed"
+    else
+        _st_error "Failed to install Spaceship theme"
+    fi
+
+    # Install zsh-autosuggestions plugin
+    _st_log "Installing zsh-autosuggestions plugin..."
+    local custom_plugins="${ZSH_CUSTOM:-$omz_dir/custom}/plugins"
+
+    if [[ ! -d "$custom_plugins/zsh-autosuggestions" ]]; then
+        if git clone https://github.com/zsh-users/zsh-autosuggestions "$custom_plugins/zsh-autosuggestions" --depth=1 2>/dev/null; then
+            _st_success "zsh-autosuggestions installed"
+        fi
+    fi
+
+    # Install zsh-syntax-highlighting plugin
+    _st_log "Installing zsh-syntax-highlighting plugin..."
+    if [[ ! -d "$custom_plugins/zsh-syntax-highlighting" ]]; then
+        if git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$custom_plugins/zsh-syntax-highlighting" --depth=1 2>/dev/null; then
+            _st_success "zsh-syntax-highlighting installed"
+        fi
+    fi
+
+    # Create/update .zshrc with Oh-My-Zsh configuration
+    _st_generate_zshrc
+}
+
+# Generate .zshrc with Oh-My-Zsh configuration
+_st_generate_zshrc() {
+    local zshrc="$HOME/.zshrc"
+    local backup="$HOME/.zshrc.backup-$(date +%Y%m%d-%H%M%S)"
+
+    # Backup existing .zshrc if it exists
+    if [[ -f "$zshrc" ]]; then
+        cp "$zshrc" "$backup"
+        _st_log "Backed up existing .zshrc to $backup"
+    fi
+
+    # Check if Oh-My-Zsh section already exists
+    if grep -q "Path to your Oh My Zsh installation" "$zshrc" 2>/dev/null; then
+        _st_log ".zshrc already contains Oh-My-Zsh configuration"
+        return 0
+    fi
+
+    # Generate new .zshrc with Oh-My-Zsh configuration
+    cat > "$zshrc" << 'ZSHRC_EOF'
+# Path to your Oh My Zsh installation.
+export ZSH="$HOME/.oh-my-zsh"
+
+# Theme
+ZSH_THEME="spaceship"
+
+# Plugins
+plugins=(
+  git
+  extract
+  sudo
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+)
+
+# Load Oh My Zsh
+source $ZSH/oh-my-zsh.sh
+
+# =============================================================================
+# SHELL-TOOLS - Personal Zsh Plugin System
+# =============================================================================
+source ~/.shell-tools/plugin.zsh
+ZSHRC_EOF
+
+    _st_success "Generated new .zshrc with Oh-My-Zsh configuration"
 }

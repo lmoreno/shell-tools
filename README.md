@@ -6,9 +6,21 @@ A minimal, personal Zsh plugin system for managing shell customizations across m
 
 - **Fast startup** - Static cache pattern loads aliases/functions in ~5ms
 - **Auto-install tools** - Missing CLI tools installed via Homebrew on first run
+- **Oh-My-Zsh integration** - Automatically installs Oh-My-Zsh with Spaceship theme
 - **Git alias generation** - Portable git aliases via `[include]` directive
 - **Modular organization** - Separate files for aliases, functions, env, tools, completions
 - **Version-based updates** - Bump VERSION to trigger cache regeneration
+- **Bash auto-switching** - Automatically switches to zsh if sourced from bash
+
+## Requirements
+
+- **Zsh** (required) - Shell-tools is zsh-only
+  - macOS: `brew install zsh`
+  - Ubuntu/Debian: `sudo apt install zsh`
+  - RHEL/Fedora: `sudo yum install zsh` or `sudo dnf install zsh`
+  - Arch: `sudo pacman -S zsh`
+- **Git** (required) - For cloning and auto-updates
+- **Curl** (required) - For installation and updates
 
 ## Installation
 
@@ -48,6 +60,55 @@ git s             # Test git aliases
 ```
 
 **Note**: Git aliases are automatically configured via `~/.gitconfig` include directive. No manual git config needed!
+
+## Oh-My-Zsh Integration
+
+Shell-tools automatically installs and configures Oh-My-Zsh with the Spaceship theme on first run if it's not already installed.
+
+### What Gets Installed
+
+- **Oh-My-Zsh**: Framework for managing zsh configuration
+- **Spaceship Theme**: Modern, feature-rich prompt with git/node/etc. indicators
+- **Plugins**:
+  - git (built-in Oh-My-Zsh plugin)
+  - extract (built-in archive extraction)
+  - sudo (built-in double ESC to add sudo)
+  - zsh-autosuggestions (fish-like suggestions)
+  - zsh-syntax-highlighting (command validation)
+
+### Existing Oh-My-Zsh Installation
+
+If you already have Oh-My-Zsh installed, shell-tools will:
+- Detect it automatically
+- Preserve your existing configuration
+- Skip the installation process
+- Work seamlessly with your current setup
+
+### Manual Oh-My-Zsh Setup
+
+If you prefer to set up Oh-My-Zsh manually before installing shell-tools:
+
+```bash
+# Install Oh-My-Zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# Install Spaceship theme
+git clone https://github.com/spaceship-prompt/spaceship-prompt.git "$ZSH_CUSTOM/themes/spaceship-prompt" --depth=1
+ln -s "$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/themes/spaceship.zsh-theme"
+
+# Then install shell-tools
+curl -fsSL https://raw.githubusercontent.com/lmoreno/shell-tools/main/install.sh | bash
+```
+
+**Important**: Ensure shell-tools is loaded **after** Oh-My-Zsh in your ~/.zshrc:
+
+```zsh
+# Load Oh My Zsh first
+source $ZSH/oh-my-zsh.sh
+
+# Then load shell-tools
+source ~/.shell-tools/plugin.zsh
+```
 
 ### Adding Project-Specific Aliases
 
