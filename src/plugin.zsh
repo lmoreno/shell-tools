@@ -43,13 +43,20 @@ export SHELL_TOOLS_ROOT
 source "$SHELL_TOOLS_ROOT/lib/core.zsh"
 
 # -----------------------------------------------------------------------------
+# Load bootstrap utilities
+# -----------------------------------------------------------------------------
+source "$SHELL_TOOLS_ROOT/lib/bootstrap.zsh"
+
+# -----------------------------------------------------------------------------
 # First run detection and bootstrap
 # -----------------------------------------------------------------------------
 if [[ ! -d "$SHELL_TOOLS_ROOT/cache" ]] || [[ ! -f "$SHELL_TOOLS_ROOT/cache/init.zsh" ]]; then
     _st_log "First run detected, bootstrapping..."
-    source "$SHELL_TOOLS_ROOT/lib/bootstrap.zsh"
     _st_bootstrap
 fi
+
+# Always check and install Oh-My-Zsh if missing (even on updates)
+_st_bootstrap_omz
 
 # -----------------------------------------------------------------------------
 # Load the loader

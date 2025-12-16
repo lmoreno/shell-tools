@@ -196,22 +196,23 @@ _st_generate_zshrc() {
     local zshrc="$HOME/.zshrc"
     local backup="$HOME/.zshrc.backup-$(date +%Y%m%d-%H%M%S)"
 
-    # Backup existing .zshrc if it exists
-    if [[ -f "$zshrc" ]]; then
-        cp "$zshrc" "$backup"
-        _st_log "Backed up existing .zshrc to $backup"
-    fi
-
     # Check if Oh-My-Zsh section already exists
     if grep -q "Path to your Oh My Zsh installation" "$zshrc" 2>/dev/null; then
         _st_log ".zshrc already contains Oh-My-Zsh configuration"
         return 0
     fi
 
+    # Backup existing .zshrc if it exists
+    if [[ -f "$zshrc" ]]; then
+        cp "$zshrc" "$backup"
+        _st_warn "Backing up existing .zshrc to:"
+        _st_warn "  $backup"
+    fi
+
     # Generate new .zshrc with Oh-My-Zsh configuration
-    cat > "$zshrc" << 'ZSHRC_EOF'
+    cat > "$zshrc" << ZSHRC_EOF
 # Path to your Oh My Zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+export ZSH="\$HOME/.oh-my-zsh"
 
 # Theme
 ZSH_THEME="spaceship"
@@ -226,13 +227,14 @@ plugins=(
 )
 
 # Load Oh My Zsh
-source $ZSH/oh-my-zsh.sh
+source \$ZSH/oh-my-zsh.sh
 
 # =============================================================================
 # SHELL-TOOLS - Personal Zsh Plugin System
 # =============================================================================
-source ~/.shell-tools/plugin.zsh
+source $SHELL_TOOLS_ROOT/plugin.zsh
 ZSHRC_EOF
 
     _st_success "Generated new .zshrc with Oh-My-Zsh configuration"
+    _st_warn "Please reload your shell or run: exec zsh"
 }
