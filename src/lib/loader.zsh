@@ -35,7 +35,7 @@ _st_ensure_git_include() {
     local current_include=$(git config --global --get-all include.path 2>/dev/null | grep -F "$git_aliases_path")
 
     if [[ -z "$current_include" ]]; then
-        git config --global --add include.path "$git_aliases_path"
+        git config --global --add include.path "$git_aliases_path" 2>/dev/null
         _st_success "Added git aliases include to ~/.gitconfig"
     fi
 }

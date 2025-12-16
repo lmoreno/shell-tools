@@ -10,10 +10,35 @@ fi
 # =============================================================================
 # PROMPT
 # =============================================================================
-# Simple, clean prompt if not already set or if using default broken prompt.
-if [[ -z "$PROMPT" ]] || [[ "$PROMPT" == *"\u"* ]]; then
+# Detect if a prompt framework is already configured
+# Preserve: Oh-My-Zsh, Starship, Pure, Powerlevel10k, etc.
+
+_st_has_framework_prompt() {
+    # Oh-My-Zsh detection (sets ZSH_THEME variable)
+    [[ -n "$ZSH_THEME" ]] && return 0
+
+    # Starship detection
+    command -v starship >/dev/null 2>&1 && return 0
+
+    # Pure prompt detection
+    [[ -n "$PURE_PROMPT_SYMBOL" ]] && return 0
+
+    # Powerlevel10k detection
+    [[ -n "$POWERLEVEL9K_MODE" ]] && return 0
+
+    # Generic: if PROMPT is already richly configured (contains colors/git info)
+    [[ "$PROMPT" == *"%F{"* ]] || [[ "$PROMPT" == *"$(__git_ps1)"* ]] && return 0
+
+    return 1
+}
+
+# Only set default prompt if no framework is detected
+if ! _st_has_framework_prompt && { [[ -z "$PROMPT" ]] || [[ "$PROMPT" == *"\u"* ]]; }; then
     PROMPT='%F{green}%n@%m%f:%F{blue}%~%f %# '
 fi
+
+# Clean up helper function
+unfunction _st_has_framework_prompt 2>/dev/null
 
 # =============================================================================
 # FZF CONFIGURATION

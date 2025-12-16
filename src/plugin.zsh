@@ -16,6 +16,21 @@
 #
 # =============================================================================
 
+# Auto-switch to zsh if running in bash
+# IMPORTANT: Must use POSIX-compatible syntax (no [[ ]] or zsh expansions)
+if [ -n "$BASH_VERSION" ]; then
+    if command -v zsh >/dev/null 2>&1; then
+        export SHELL=$(command -v zsh)
+        exec zsh
+    else
+        echo "[shell-tools] ERROR: shell-tools requires zsh, but zsh is not installed."
+        echo "[shell-tools] Install zsh:"
+        echo "  macOS:  brew install zsh"
+        echo "  Linux:  sudo apt install zsh  # or: sudo yum install zsh"
+        return 1 2>/dev/null || exit 1
+    fi
+fi
+
 # Resolve plugin root directory (works even if symlinked)
 SHELL_TOOLS_ROOT="${0:A:h}"
 
