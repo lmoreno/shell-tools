@@ -73,6 +73,79 @@ make bump-major            # Bump major version (2.3.0 -> 3.0.0)
 make hooks                 # Install pre-commit hooks
 ```
 
+## Git Workflow & Pull Requests
+
+**IMPORTANT**: PRs are merged using **squash and commit**. This means:
+- All commits in a PR are squashed into a single commit on main
+- The commit hash changes after merge
+- **Never reuse a branch after its PR is merged** - it will have conflicts
+- **Never push additional commits to a branch after creating a PR expecting it to be merged soon**
+
+### Correct Workflow for Fixes/Features
+
+1. **Always branch from latest main**:
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feat/my-feature  # or fix/my-bugfix
+   ```
+
+2. **Make changes and commit**:
+   ```bash
+   # Make your changes
+   git add <files>
+   git commit -m "feat: description"
+   ```
+
+3. **Create PR**:
+   ```bash
+   git push -u origin feat/my-feature
+   gh pr create --title "..." --body "..."
+   ```
+
+4. **After PR is merged**:
+   - **DO NOT** push more commits to the same branch
+   - **DO NOT** reuse the branch
+   - For new work, create a NEW branch from main
+   - Delete the old branch: `git branch -d feat/my-feature`
+
+5. **For additional fixes/changes**:
+   - If PR not yet merged: Can push to same branch (but avoid if possible)
+   - If PR merged or will be merged soon: Create NEW branch from main
+
+### Example: Making Two Separate Changes
+
+❌ **WRONG** (will cause conflicts after first PR merges):
+```bash
+git checkout -b feat/feature-a
+# work on feature A
+git push -u origin feat/feature-a
+gh pr create  # PR #1
+
+# After PR #1 is merged, continuing on same branch:
+git checkout feat/feature-a  # ❌ Don't do this!
+# work on feature B
+git push  # ❌ Will have conflicts!
+```
+
+✅ **CORRECT**:
+```bash
+# Feature A
+git checkout main
+git checkout -b feat/feature-a
+# work on feature A
+git push -u origin feat/feature-a
+gh pr create  # PR #1
+
+# After PR #1 is merged, start fresh:
+git checkout main
+git pull origin main  # Get the squashed commit
+git checkout -b feat/feature-b  # ✅ New branch!
+# work on feature B
+git push -u origin feat/feature-b
+gh pr create  # PR #2
+```
+
 ### Local Testing
 To test the plugin locally from src/:
 ```bash
