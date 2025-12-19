@@ -163,6 +163,7 @@ remove-alias() {
 }
 
 # Intelligent git wrapper with fuzzy alias search
+unalias g 2>/dev/null
 g() {
     # If arguments are passed, execute git with them
     if [[ $# -gt 0 ]]; then
