@@ -140,8 +140,7 @@ _st_bootstrap_omz() {
 
     # Check if Oh-My-Zsh is already installed
     if [[ -d "$omz_dir" ]]; then
-        _st_log "Oh-My-Zsh already installed at $omz_dir"
-        return 0
+        return 0  # Silent return - nothing to do
     fi
 
     # Automatically install Oh-My-Zsh

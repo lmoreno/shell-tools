@@ -92,7 +92,8 @@ setup() {
         _st_bootstrap_omz 2>&1
     "
     assert_success
-    assert_output --partial "already installed"
+    # Should be silent (no output) when Oh-My-Zsh already exists
+    assert_output ""
 }
 
 @test "Bootstrap: generates .zshrc with Oh-My-Zsh config" {
