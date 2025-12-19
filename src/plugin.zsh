@@ -34,6 +34,12 @@ fi
 # Resolve plugin root directory (works even if symlinked)
 SHELL_TOOLS_ROOT="${0:A:h}"
 
+# Detect development mode (.dev marker file indicates dev environment)
+if [[ -f "$SHELL_TOOLS_ROOT/.dev" ]]; then
+    export SHELL_TOOLS_DEV=1
+    echo "[shell-tools] 🔧 Development mode active"
+fi
+
 # Export for use in subshells
 export SHELL_TOOLS_ROOT
 

@@ -75,22 +75,22 @@ use() {
 
     local selection
 
-    # Format aliases with colors: bold cyan alias → command
-    local formatted=$(alias | awk -F= '{
+    # AWK script to format aliases with colors: bold cyan alias → command
+    local awk_script='BEGIN {FS="="} {
         alias_name = $1;
         command = substr($0, index($0, "=") + 1);
         # Remove surrounding quotes from command
         gsub(/^'\''|'\''$/, "", command);
         # Print with bold cyan alias name, arrow symbol, and command
         printf "\033[1;36m%-20s\033[0m → %s\n", alias_name, command;
-    }')
+    }'
 
     if [ -n "$1" ]; then
         # Pre-filtered query with color rendering
-        selection=$(echo "$formatted" | fzf --query="$1" --ansi --preview "echo {}" --preview-window=up:3:wrap --print-query | tail -1)
+        selection=$(alias | awk "$awk_script" | fzf --query="$1" --ansi --preview "echo {}" --preview-window=up:3:wrap --print-query | tail -1)
     else
         # Interactive mode with color rendering
-        selection=$(echo "$formatted" | fzf --ansi --preview "echo {}" --preview-window=up:3:wrap)
+        selection=$(alias | awk "$awk_script" | fzf --ansi --preview "echo {}" --preview-window=up:3:wrap)
     fi
 
     if [ -n "$selection" ]; then
@@ -181,6 +181,7 @@ g() {
     local selection
     selection=$(git config --get-regexp '^alias\.' |
         sed 's/^alias\.//' |
+        sort -u |
         awk '{
             name=$1;
             $1="";

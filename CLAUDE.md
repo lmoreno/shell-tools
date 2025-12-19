@@ -146,13 +146,34 @@ git push -u origin feat/feature-b
 gh pr create  # PR #2
 ```
 
-### Local Testing
-To test the plugin locally from src/:
+### Development Mode
+
+When working on shell-tools, you can test changes without affecting your installed version:
+
+**Auto-Detection**: The plugin automatically detects development mode when a `.dev` marker file is present.
+
+- **In development** (git clone): `src/.dev` exists → dev mode active
+- **When installed**: `.dev` excluded from release → normal mode
+
+**Usage**:
 ```bash
-source ~/projects/shell-tools/src/plugin.zsh
-st-version
-st-reload
+# Test local changes
+cd ~/projects/shell-tools
+source src/plugin.zsh
+
+# You'll see: [shell-tools] 🔧 Development mode active
+# All subsequent logs will show: [shell-tools] [DEV] ...
 ```
+
+**Isolation**:
+- Dev mode uses `src/cache/` for cache files
+- Installed version uses `~/.shell-tools/cache/`
+- Both versions operate independently
+
+**Workflow**:
+1. Make changes to files in `src/`
+2. Run `st-reload` to test changes
+3. All commands (`st-version`, `use`, `g`, etc.) use local files
 
 ## Adding New Aliases/Functions
 
