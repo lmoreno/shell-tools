@@ -161,3 +161,38 @@ remove-alias() {
         echo "Cancelled."
     fi
 }
+
+# Intelligent git wrapper with fuzzy alias search
+g() {
+    # If arguments are passed, execute git with them
+    if [[ $# -gt 0 ]]; then
+        git "$@"
+        return
+    fi
+
+    # If no arguments, start interactive alias search
+    if ! command -v fzf &>/dev/null; then
+        echo "Error: 'fzf' is required for interactive mode." >&2
+        return 1
+    fi
+
+    # Get git aliases, format for fzf, and let user select one
+    local selection
+    selection=$(git config --get-regexp '^alias\.' |
+        sed 's/^alias\.//' |
+        awk '{
+            name=$1;
+            $1="";
+            # Reconstruct command, removing leading space
+            cmd=substr($0, 2);
+            printf "\033[1;36m%-20s\033[0m → %s\n", name, cmd;
+        }' |
+        fzf --ansi --preview="echo {}" --preview-window=up:3:wrap
+    )
+
+    # If a selection was made, place "g <alias>" in the prompt
+    if [[ -n "$selection" ]]; then
+        local alias_name=$(echo "$selection" | sed 's/\x1b\[[0-9;]*m//g' | awk '{print $1}')
+        print -z "g $alias_name"
+    fi
+}
