@@ -21,7 +21,7 @@ jobs:
       - name: Bundle Release
         run: |
           cd src
-          zip -r ../shell-tools.zip .
+          zip -r ../shell-tools.zip . -x ".dev"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1

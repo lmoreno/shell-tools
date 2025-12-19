@@ -1,6 +1,9 @@
 # Cache directory (auto-generated)
 cache/
 
+# Note: src/.dev marker is intentionally NOT ignored
+# It must be committed to enable dev mode detection
+
 # macOS
 .DS_Store
 

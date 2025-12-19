@@ -3,19 +3,35 @@
 
 # Logging functions with colored output
 _st_log() {
-    print -P "%F{blue}[shell-tools]%f $1"
+    if [[ -n "$SHELL_TOOLS_DEV" ]]; then
+        print -P "%F{blue}[shell-tools] [DEV]%f $1"
+    else
+        print -P "%F{blue}[shell-tools]%f $1"
+    fi
 }
 
 _st_warn() {
-    print -P "%F{yellow}[shell-tools]%f $1"
+    if [[ -n "$SHELL_TOOLS_DEV" ]]; then
+        print -P "%F{yellow}[shell-tools] [DEV]%f $1"
+    else
+        print -P "%F{yellow}[shell-tools]%f $1"
+    fi
 }
 
 _st_error() {
-    print -P "%F{red}[shell-tools]%f $1"
+    if [[ -n "$SHELL_TOOLS_DEV" ]]; then
+        print -P "%F{red}[shell-tools] [DEV]%f $1"
+    else
+        print -P "%F{red}[shell-tools]%f $1"
+    fi
 }
 
 _st_success() {
-    print -P "%F{green}[shell-tools]%f $1"
+    if [[ -n "$SHELL_TOOLS_DEV" ]]; then
+        print -P "%F{green}[shell-tools] [DEV]%f $1"
+    else
+        print -P "%F{green}[shell-tools]%f $1"
+    fi
 }
 
 # Check if a command exists

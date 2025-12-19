@@ -259,10 +259,19 @@ Source files are in `src/` during development. Release ZIPs contain these files 
 
 ### Local Testing
 
+The project automatically detects when you're in development mode:
+
+- **Dev Mode**: Detected by presence of `.dev` in `src/` (`.dev` is excluded from release zips)
+- **Isolated Cache**: Uses `src/cache/` instead of installed cache
+- **Visual Indicator**: All logs show `[DEV]` prefix
+- **Zero Config**: Just source `src/plugin.zsh` to activate
+
 Test the plugin from source:
 ```bash
-source ~/projects/shell-tools/src/plugin.zsh
-st-version
+cd ~/projects/shell-tools
+source src/plugin.zsh  # Auto-detects dev mode
+st-version            # Shows dev version
+st-reload             # Reloads with [DEV] indicator
 ```
 
 ### Running Tests
