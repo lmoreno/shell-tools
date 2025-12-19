@@ -154,7 +154,6 @@ alias myps='ps -ef | grep $USER'
 # =============================================================================
 
 if command -v git &>/dev/null; then
-    # alias g='git'
     alias gb="git branch"
     alias gs="git status"
     alias gco="git checkout"

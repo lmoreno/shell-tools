@@ -90,3 +90,25 @@ EOF
     assert_failure
     assert_output --partial "Error: 'fzf' is required"
 }
+
+@test "g: replaces existing alias" {
+    cat << 'EOF' > "$TEST_TEMP_DIR/test_alias_conflict.zsh"
+        # Define conflicting alias
+        alias g='git'
+        
+        # Source the plugin (should unalias g)
+        source "$1/.shell-tools/plugin.zsh"
+        
+        # Check if g is a function
+        if [[ "$(type -w g)" == "g: function" ]]; then
+            echo "SUCCESS: g is a function"
+        else
+            echo "FAILURE: g is $(type -w g)"
+        fi
+EOF
+    
+    run zsh "$TEST_TEMP_DIR/test_alias_conflict.zsh" "$HOME"
+    
+    assert_success
+    assert_output --partial "SUCCESS: g is a function"
+}
