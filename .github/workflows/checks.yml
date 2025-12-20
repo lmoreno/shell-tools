@@ -15,8 +15,8 @@ jobs:
       - name: Validate VERSION file format
         run: ./scripts/validate-version.sh
 
-      - name: Install Zsh
-        run: sudo apt-get install -y zsh
+      - name: Install Zsh and GNU Parallel
+        run: sudo apt-get install -y zsh parallel
 
       - name: Run Bats Tests
-        run: ./tests/run tests/
+        run: make test

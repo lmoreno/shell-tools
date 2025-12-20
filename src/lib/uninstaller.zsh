@@ -25,7 +25,7 @@ _st_remove_zshrc_source() {
 
     # Remove lines containing shell-tools/plugin.zsh source
     if grep -q "shell-tools/plugin.zsh" "$zshrc" 2>/dev/null; then
-        sed -i.uninstall-backup '/shell-tools\/plugin\.zsh/d' "$zshrc"
+        _st_sed_i '/shell-tools\/plugin\.zsh/d' "$zshrc"
         return 0
     fi
     return 1

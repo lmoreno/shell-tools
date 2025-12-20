@@ -124,7 +124,7 @@ add-alias() {
         _st_log "Current: $(grep "^alias $alias_name=" "$aliases_file")"
         read "overwrite?Overwrite? (y/n): "
         [[ "$overwrite" != "y" ]] && { _st_log "Cancelled."; return 1; }
-        sed -i.bak "/^alias $alias_name=/d" "$aliases_file"
+        _st_sed_i "/^alias $alias_name=/d" "$aliases_file"
     fi
 
     echo "alias $alias_name='$alias_cmd'" >> "$aliases_file"
@@ -153,7 +153,7 @@ remove-alias() {
     read "confirm?Remove? (y/n): "
 
     if [[ "$confirm" == "y" ]]; then
-        sed -i.bak "/^alias $alias_name=/d" "$aliases_file"
+        _st_sed_i "/^alias $alias_name=/d" "$aliases_file"
         _st_success "Removed alias '$alias_name'"
         st-reload
         _st_success "Alias unloaded and removed"

@@ -48,3 +48,12 @@ _st_is_macos() {
 _st_is_linux() {
     [[ "$OSTYPE" == linux* ]]
 }
+
+# Cross-platform sed in-place edit (macOS vs Linux compatibility)
+_st_sed_i() {
+    if _st_is_macos; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}

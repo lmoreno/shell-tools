@@ -302,8 +302,15 @@ st-reload             # Reloads with [DEV] indicator
 ### Running Tests
 
 ```bash
-make test                   # Run all tests
+make test                   # Run all tests (parallel if GNU parallel installed)
+make test-serial            # Run tests sequentially (for debugging)
 bats tests/features.bats    # Run specific test file
+```
+
+For faster test execution, install GNU parallel:
+```bash
+brew install parallel       # macOS
+sudo apt install parallel   # Linux
 ```
 
 ### Version Bumping
