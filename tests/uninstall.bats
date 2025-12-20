@@ -5,6 +5,9 @@ load 'test_helper'
 setup() {
     common_setup
 
+    # Mock Oh-My-Zsh to prevent bootstrap from overwriting .zshrc
+    mkdir -p "$HOME/.oh-my-zsh"
+
     # Install shell-tools
     mkdir -p "$HOME/.shell-tools"
     cp -r "$SRC_ROOT/lib" "$HOME/.shell-tools/"
