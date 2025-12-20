@@ -33,9 +33,39 @@ _st_should_check_updates() {
 
 # Get latest version from GitHub
 _st_get_latest_version() {
-    curl -fsSL "https://api.github.com/repos/$SHELL_TOOLS_REPO/releases/latest" \
-        | grep '"tag_name"' \
-        | sed -E 's/.*"([^"]+)".*/\1/' 2>/dev/null
+    local response
+    local http_code
+
+    # Fetch with HTTP status code
+    response=$(curl -sS -w "\n%{http_code}" "https://api.github.com/repos/$SHELL_TOOLS_REPO/releases/latest" 2>&1)
+    http_code=$(echo "$response" | tail -n1)
+    local body=$(echo "$response" | sed '$d')
+
+    # Check for specific error codes
+    case "$http_code" in
+        200)
+            # Success - extract tag_name
+            echo "$body" | grep '"tag_name"' | sed -E 's/.*"tag_name":[[:space:]]*"([^"]+)".*/\1/' 2>/dev/null
+            ;;
+        403)
+            # Rate limit or forbidden
+            if echo "$body" | grep -q "rate limit"; then
+                echo "RATE_LIMIT_ERROR" >&2
+            else
+                echo "FORBIDDEN_ERROR" >&2
+            fi
+            return 1
+            ;;
+        404)
+            echo "NOT_FOUND_ERROR" >&2
+            return 1
+            ;;
+        *)
+            # Network error or other issues
+            echo "NETWORK_ERROR:$http_code" >&2
+            return 1
+            ;;
+    esac
 }
 
 # Compare semantic versions
@@ -150,10 +180,15 @@ _st_check_for_updates() {
 
     # Get current and latest versions
     local current_version=$(cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null || echo "0.0.0")
-    local latest_version=$(_st_get_latest_version)
+    local latest_version
 
-    # Failed to fetch or no new version
-    [[ -z "$latest_version" ]] && return 0
+    # Get latest version (suppress errors on automatic checks)
+    latest_version=$(_st_get_latest_version 2>/dev/null)
+
+    # Handle errors silently on automatic checks (don't spam user on every shell startup)
+    if [[ -z "$latest_version" ]]; then
+        return 0
+    fi
 
     # Check if update available
     if _st_version_gt "$latest_version" "$current_version"; then
@@ -175,11 +210,38 @@ _st_check_for_updates() {
 
 # Manual update command
 st-update() {
-    local latest_version=$(_st_get_latest_version)
     local current_version=$(cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null || echo "0.0.0")
+    local latest_version error_msg
 
+    # Capture both stdout and stderr
+    error_msg=$(_st_get_latest_version 2>&1 1>/dev/null)
+    latest_version=$(_st_get_latest_version 2>/dev/null)
+
+    # Handle errors with user-friendly messages
     if [[ -z "$latest_version" ]]; then
-        _st_error "Failed to check for updates"
+        case "$error_msg" in
+            RATE_LIMIT_ERROR)
+                _st_error "GitHub API rate limit exceeded"
+                echo "  Please try again later or check manually at:"
+                echo "  https://github.com/$SHELL_TOOLS_REPO/releases/latest"
+                ;;
+            FORBIDDEN_ERROR)
+                _st_error "Access forbidden to GitHub API"
+                echo "  Check your network connection or GitHub access"
+                ;;
+            NOT_FOUND_ERROR)
+                _st_error "Repository not found: $SHELL_TOOLS_REPO"
+                ;;
+            NETWORK_ERROR:*)
+                local code="${error_msg#NETWORK_ERROR:}"
+                _st_error "Network error (HTTP $code)"
+                echo "  Check your internet connection and try again"
+                ;;
+            *)
+                _st_error "Failed to check for updates"
+                echo "  Check your internet connection and try again"
+                ;;
+        esac
         return 1
     fi
 
