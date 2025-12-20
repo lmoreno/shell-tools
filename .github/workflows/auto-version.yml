@@ -1,0 +1,75 @@
+name: Auto Version Bump
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  bump-version:
+    # Only run if PR was merged (not just closed)
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if VERSION was manually changed
+        id: check_manual
+        run: |
+          # Check if VERSION was modified in this PR
+          if git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.merge_commit_sha }} | grep -q "^src/VERSION$"; then
+            echo "VERSION was manually changed in PR, skipping auto-bump"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION not changed, will auto-bump"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine bump type from branch
+        if: steps.check_manual.outputs.skip == 'false'
+        id: bump_type
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          echo "Branch: $BRANCH"
+
+          # Branch prefix → bump type mapping
+          # Edit these patterns to customize auto-version behavior
+          if [[ "$BRANCH" =~ ^(fix|bugfix|hotfix)/ ]]; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+          elif [[ "$BRANCH" =~ ^(feat|feature)/ ]]; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif [[ "$BRANCH" =~ ^(breaking|major)/ ]]; then
+            echo "type=major" >> $GITHUB_OUTPUT
+          else
+            echo "Branch prefix not recognized, skipping bump"
+            echo "type=skip" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump VERSION
+        if: steps.check_manual.outputs.skip == 'false' && steps.bump_type.outputs.type != 'skip'
+        run: |
+          BUMP_TYPE="${{ steps.bump_type.outputs.type }}"
+          make bump-$BUMP_TYPE
+
+      - name: Commit and push
+        if: steps.check_manual.outputs.skip == 'false' && steps.bump_type.outputs.type != 'skip'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BUMP_TYPE="${{ steps.bump_type.outputs.type }}"
+          NEW_VERSION=$(cat src/VERSION | tr -d '[:space:]')
+
+          git add src/VERSION
+          git commit -m "chore: bump version to $NEW_VERSION ($BUMP_TYPE)
+
+          Auto-bumped from branch: ${{ github.event.pull_request.head.ref }}
+          PR: #${{ github.event.pull_request.number }}"
+
+          git push
