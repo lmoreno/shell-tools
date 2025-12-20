@@ -88,7 +88,7 @@ EOF
     run zsh "$TEST_TEMP_DIR/test_fail.zsh" "$HOME"
     
     assert_failure
-    assert_output --partial "Error: 'fzf' is required"
+    assert_output --partial "'fzf' is required for interactive mode"
 }
 
 @test "g: replaces existing alias" {

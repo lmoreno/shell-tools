@@ -174,7 +174,7 @@ st-reload() {
 # Show version
 st-version() {
     local version="$(command cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null || echo "unknown")"
-    echo "shell-tools v$version"
+    _st_log "v$version"
 }
 
 # -----------------------------------------------------------------------------
