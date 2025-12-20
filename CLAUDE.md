@@ -13,7 +13,8 @@ shell-tools/
 │   │   ├── core.zsh        # Logging and utility functions
 │   │   ├── bootstrap.zsh   # First-run tool installation
 │   │   ├── loader.zsh      # Cache generation and version checking
-│   │   └── updater.zsh     # Auto-update system
+│   │   ├── updater.zsh     # Auto-update system
+│   │   └── uninstaller.zsh # Clean removal
 │   ├── modules/            # User-editable content
 │   │   ├── aliases.zsh     # All alias definitions
 │   │   ├── functions.zsh   # Utility functions
@@ -46,6 +47,9 @@ shell-tools/
 
 - `st-reload` - Force cache regeneration and reload
 - `st-version` - Show current version
+- `st-info` - Show system information for debugging
+- `st-update` - Check for and install updates
+- `st-uninstall` - Clean removal with confirmation prompts
 
 ## Development
 

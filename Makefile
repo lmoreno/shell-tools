@@ -1,4 +1,4 @@
-.PHONY: init test validate-version bump-patch bump-minor bump-major hooks help
+.PHONY: init test test-serial validate-version bump-patch bump-minor bump-major hooks info help
 
 # Default target
 help:
@@ -6,7 +6,9 @@ help:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  init            - Initialize project (submodules + hooks)"
-	@echo "  test            - Run all Bats tests"
+	@echo "  test            - Run all Bats tests (parallel if available)"
+	@echo "  test-serial     - Run tests sequentially (for debugging)"
+	@echo "  info            - Show system information (st-info)"
 	@echo "  validate-version - Validate VERSION file format"
 	@echo "  bump-patch      - Bump patch version (2.3.0 -> 2.3.1)"
 	@echo "  bump-minor      - Bump minor version (2.3.0 -> 2.4.0)"
@@ -25,9 +27,18 @@ init:
 	@echo ""
 	@echo "💡 To activate dev mode, run: source src/plugin.zsh"
 
-# Run all tests
+# Run all tests (parallel if GNU parallel available)
 test:
 	@echo "Running Bats test suite..."
+	@if command -v parallel >/dev/null 2>&1; then \
+		tests/libs/bats-core/bin/bats -j 4 --no-parallelize-within-files tests/*.bats; \
+	else \
+		tests/libs/bats-core/bin/bats tests/*.bats; \
+	fi
+
+# Run tests sequentially (for debugging)
+test-serial:
+	@echo "Running Bats test suite (serial)..."
 	@tests/libs/bats-core/bin/bats tests/*.bats
 
 # Validate VERSION file format
@@ -73,3 +84,7 @@ hooks:
 	@echo "Installing git hooks..."
 	@bash scripts/setup-hooks.sh
 	@echo "Git hooks installed successfully"
+
+# Show system information
+info:
+	@zsh -c 'source src/plugin.zsh && st-info'

@@ -23,7 +23,7 @@ _st_generate_git_aliases() {
     _st_log "Git aliases generated"
 }
 
-# Ensure git config includes shell-tools aliases
+# Ensure git config includes shell-tools aliases (replace on switch)
 _st_ensure_git_include() {
     local gitconfig="$HOME/.gitconfig"
     local git_aliases_path="$SHELL_TOOLS_ROOT/cache/git-aliases"
@@ -31,13 +31,21 @@ _st_ensure_git_include() {
     # Create .gitconfig if it doesn't exist
     [[ ! -f "$gitconfig" ]] && touch "$gitconfig"
 
-    # Check if include already exists using git config command
-    local current_include=$(git config --global --get-all include.path 2>/dev/null | grep -F "$git_aliases_path")
+    # Remove any existing shell-tools git-aliases includes (from dev or installed versions)
+    # This ensures only one shell-tools include is active at a time
+    # Match any path ending with cache/git-aliases (shell-tools signature)
+    local existing_includes
+    existing_includes=$(git config --global --get-all include.path 2>/dev/null | grep "cache/git-aliases$")
 
-    if [[ -z "$current_include" ]]; then
-        git config --global --add include.path "$git_aliases_path" 2>/dev/null
-        _st_success "Added git aliases include to ~/.gitconfig"
+    if [[ -n "$existing_includes" ]]; then
+        while IFS= read -r old_include; do
+            git config --global --unset include.path "$old_include" 2>/dev/null
+        done <<< "$existing_includes"
     fi
+
+    # Add the current shell-tools include
+    git config --global --add include.path "$git_aliases_path" 2>/dev/null
+    _st_success "Git aliases configured for current shell-tools"
 }
 
 # Check if cache needs to be regenerated

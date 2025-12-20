@@ -203,7 +203,7 @@ _st_check_for_updates() {
                 exec zsh
             }
         else
-            echo "   Skipped. Run 'st-update' later to update."
+            _st_log "Skipped. Run 'st-update' later to update."
         fi
     fi
 }
@@ -246,7 +246,7 @@ st-update() {
     fi
 
     if _st_version_gt "$latest_version" "$current_version"; then
-        echo "Update available: $current_version → $latest_version"
+        _st_warn "Update available: $current_version → $latest_version"
         read "update?Update now? (y/n): "
 
         if [[ "$update" =~ ^[Yy]$ ]]; then

@@ -22,17 +22,17 @@ ex() {
             *.zip)       unzip "$1"      ;; 
             *.Z)         uncompress "$1" ;; 
             *.7z)        7z x "$1"       ;; 
-            *)           echo "'$1' cannot be extracted" ;; 
+            *)           _st_error "'$1' cannot be extracted" ;;
         esac
     else
-        echo "'$1' is not a valid file"
+        _st_error "'$1' is not a valid file"
     fi
 }
 
 # Kill process by port number
 killport() {
     if ! command -v lsof &>/dev/null; then
-        echo "Error: 'lsof' is required."
+        _st_error "'lsof' is required"
         return 1
     fi
     lsof -ti:$1 | xargs kill -9
@@ -46,7 +46,7 @@ backup() {
 # Open directory in VS Code and cd into it
 c() {
     if ! command -v code &>/dev/null; then
-        echo "Error: 'code' (VS Code) is required."
+        _st_error "'code' (VS Code) is required"
         return 1
     fi
     code "$1" && cd "$1"
@@ -68,8 +68,8 @@ alias-search() {
 unalias use 2>/dev/null
 use() {
     if ! command -v fzf &>/dev/null; then
-        echo "Error: 'fzf' is required for this command."
-        echo "Please install it via your package manager or homebrew."
+        _st_error "'fzf' is required for this command"
+        echo "  Install via: brew install fzf"
         return 1
     fi
 
@@ -120,17 +120,17 @@ add-alias() {
     # Check if alias already exists
     if grep -q "^alias $alias_name=" "$aliases_file" 2>/dev/null;
  then
-        echo "Alias '$alias_name' already exists"
-        echo "Current: $(grep "^alias $alias_name=" "$aliases_file")"
+        _st_warn "Alias '$alias_name' already exists"
+        _st_log "Current: $(grep "^alias $alias_name=" "$aliases_file")"
         read "overwrite?Overwrite? (y/n): "
-        [[ "$overwrite" != "y" ]] && { echo "Cancelled."; return 1; }
-        sed -i.bak "/^alias $alias_name=/d" "$aliases_file"
+        [[ "$overwrite" != "y" ]] && { _st_log "Cancelled."; return 1; }
+        _st_sed_i "/^alias $alias_name=/d" "$aliases_file"
     fi
 
     echo "alias $alias_name='$alias_cmd'" >> "$aliases_file"
-    echo "✓ Added: alias $alias_name='$alias_cmd'"
+    _st_success "Added: alias $alias_name='$alias_cmd'"
     st-reload
-    echo "✓ Alias loaded and ready to use"
+    _st_success "Alias loaded and ready to use"
 }
 
 # Remove alias from shell-tools
@@ -145,20 +145,20 @@ remove-alias() {
 
     if ! grep -q "^alias $alias_name=" "$aliases_file" 2>/dev/null;
  then
-        echo "Alias '$alias_name' not found"
+        _st_error "Alias '$alias_name' not found"
         return 1
     fi
 
-    echo "Current: $(grep "^alias $alias_name=" "$aliases_file")"
+    _st_log "Current: $(grep "^alias $alias_name=" "$aliases_file")"
     read "confirm?Remove? (y/n): "
 
     if [[ "$confirm" == "y" ]]; then
-        sed -i.bak "/^alias $alias_name=/d" "$aliases_file"
-        echo "✓ Removed alias '$alias_name'"
+        _st_sed_i "/^alias $alias_name=/d" "$aliases_file"
+        _st_success "Removed alias '$alias_name'"
         st-reload
-        echo "✓ Alias unloaded and removed"
+        _st_success "Alias unloaded and removed"
     else
-        echo "Cancelled."
+        _st_log "Cancelled."
     fi
 }
 
@@ -173,7 +173,7 @@ g() {
 
     # If no arguments, start interactive alias search
     if ! command -v fzf &>/dev/null; then
-        echo "Error: 'fzf' is required for interactive mode." >&2
+        _st_error "'fzf' is required for interactive mode"
         return 1
     fi
 
