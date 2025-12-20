@@ -18,7 +18,8 @@ setup() {
 
 @test "Functions: add-alias creates new alias" {
     # Source plugin
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh && echo 'y' | add-alias testcmd 'echo hello'"
+    # Run from $HOME to avoid auto-detection finding project's src/.dev
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && echo 'y' | add-alias testcmd 'echo hello'"
 
     # Verify alias was added
     run grep "alias testcmd=" "$HOME/.shell-tools/modules/aliases.zsh"
@@ -27,16 +28,17 @@ setup() {
 
 @test "Functions: remove-alias command exists and validates" {
     # Verify remove-alias function exists
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh && type remove-alias"
+    # Run from $HOME to avoid auto-detection finding project's src/.dev
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && type remove-alias"
     assert_success
 
     # Test that it requires an argument
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh && remove-alias"
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && remove-alias"
     assert_failure
     assert_output --partial "Usage: remove-alias <name>"
 
     # Test that it reports when alias doesn't exist
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh && printf 'y\\n' | remove-alias nonexistent"
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && printf 'y\\n' | remove-alias nonexistent"
     assert_output --partial "not found"
 }
 
@@ -45,7 +47,8 @@ setup() {
     echo "test content" > "$HOME/testfile.txt"
 
     # Backup it
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh && backup $HOME/testfile.txt"
+    # Run from $HOME to avoid auto-detection finding project's src/.dev
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && backup $HOME/testfile.txt"
 
     # Verify backup exists
     run ls "$HOME"/testfile.txt.backup-*
@@ -53,7 +56,8 @@ setup() {
 }
 
 @test "Functions: take creates directory and changes into it" {
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh && take $HOME/newdir && pwd"
+    # Run from $HOME to avoid auto-detection finding project's src/.dev
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && take $HOME/newdir && pwd"
 
     # Check output contains the directory path
     assert_output --partial "$HOME/newdir"

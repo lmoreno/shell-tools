@@ -1,4 +1,4 @@
-.PHONY: init test validate-version bump-patch bump-minor bump-major hooks dev-mode auto-dev help
+.PHONY: init test validate-version bump-patch bump-minor bump-major hooks help
 
 # Default target
 help:
@@ -8,8 +8,6 @@ help:
 	@echo "  init            - Initialize project (submodules + hooks)"
 	@echo "  test            - Run all Bats tests"
 	@echo "  validate-version - Validate VERSION file format"
-	@echo "  dev-mode        - Show how to activate development mode"
-	@echo "  auto-dev        - Set up automatic dev mode on directory change"
 	@echo "  bump-patch      - Bump patch version (2.3.0 -> 2.3.1)"
 	@echo "  bump-minor      - Bump minor version (2.3.0 -> 2.4.0)"
 	@echo "  bump-major      - Bump major version (2.3.0 -> 3.0.0)"
@@ -19,14 +17,13 @@ help:
 # Initialize project (submodules + hooks)
 init:
 	@echo "Initializing project..."
-	@chmod +x scripts/setup-hooks.sh scripts/setup-auto-dev.sh tests/run
+	@chmod +x scripts/setup-hooks.sh tests/run
 	@git submodule update --init --recursive
 	@scripts/setup-hooks.sh
-	@scripts/setup-auto-dev.sh
 	@echo ""
 	@echo "Project initialized successfully!"
 	@echo ""
-	@echo "💡 To activate auto dev mode, run: source ~/.zshrc"
+	@echo "💡 To activate dev mode, run: source src/plugin.zsh"
 
 # Run all tests
 test:
@@ -37,25 +34,6 @@ test:
 validate-version:
 	@echo "Validating VERSION file..."
 	@scripts/validate-version.sh
-
-# Activate development mode
-dev-mode:
-	@echo "🔧 Activating development mode..."
-	@echo ""
-	@echo "Run this command to activate dev mode in your current shell:"
-	@echo ""
-	@echo "  source src/plugin.zsh"
-	@echo ""
-	@echo "You should see:"
-	@echo "  - [shell-tools] 🔧 Development mode active"
-	@echo "  - [DEV] prefix on all log messages"
-	@echo ""
-	@echo "💡 Tip: Run 'make auto-dev' to set up automatic dev mode"
-	@echo "   when you cd into this directory"
-
-# Set up automatic dev mode on directory change
-auto-dev:
-	@scripts/setup-auto-dev.sh
 
 # Bump patch version (e.g., 2.3.0 -> 2.3.1)
 bump-patch:

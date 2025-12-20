@@ -21,11 +21,12 @@ setup() {
     assert [ -f "$HOME/dev-project/.dev" ]
 
     # Source plugin and check for dev mode activation
-    run zsh -c "source $HOME/dev-project/plugin.zsh 2>&1"
+    # Run from $HOME to avoid auto-detection issues
+    run zsh -c "cd $HOME && source $HOME/dev-project/plugin.zsh 2>&1"
     assert_output --partial "🔧 Development mode active"
 
     # Verify SHELL_TOOLS_DEV is set
-    run zsh -c "source $HOME/dev-project/plugin.zsh >/dev/null 2>&1 && echo \$SHELL_TOOLS_DEV"
+    run zsh -c "cd $HOME && source $HOME/dev-project/plugin.zsh >/dev/null 2>&1 && echo \$SHELL_TOOLS_DEV"
     assert_output "1"
 }
 
@@ -43,11 +44,12 @@ setup() {
     assert [ ! -f "$HOME/.shell-tools/.dev" ]
 
     # Source plugin - should NOT show dev mode message
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh 2>&1"
+    # Run from $HOME to avoid auto-detection finding project's src/.dev
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh 2>&1"
     refute_output --partial "🔧 Development mode active"
 
     # Verify SHELL_TOOLS_DEV is NOT set
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && echo \"DEV:\$SHELL_TOOLS_DEV\""
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && echo \"DEV:\$SHELL_TOOLS_DEV\""
     assert_output "DEV:"
 }
 
@@ -62,7 +64,8 @@ setup() {
     cp "$SRC_ROOT/.dev" "$HOME/dev-project/"  # Explicitly copy .dev marker
 
     # Force cache regeneration to see logs
-    run zsh -c "source $HOME/dev-project/plugin.zsh 2>&1"
+    # Run from $HOME to avoid auto-detection issues
+    run zsh -c "cd $HOME && source $HOME/dev-project/plugin.zsh 2>&1"
 
     # Check for [DEV] prefix in logs (after initial activation message)
     assert_output --partial "[DEV]"
@@ -78,7 +81,8 @@ setup() {
     cp "$SRC_ROOT/VERSION" "$HOME/.shell-tools/"
 
     # Source and check logs
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh 2>&1"
+    # Run from $HOME to avoid auto-detection finding project's src/.dev
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh 2>&1"
 
     # Should NOT contain [DEV] prefix
     refute_output --partial "[DEV]"
@@ -95,7 +99,8 @@ setup() {
     cp "$SRC_ROOT/.dev" "$HOME/dev-project/"
 
     # Source plugin to generate cache
-    run zsh -c "source $HOME/dev-project/plugin.zsh >/dev/null 2>&1"
+    # Run from $HOME to avoid auto-detection issues
+    run zsh -c "cd $HOME && source $HOME/dev-project/plugin.zsh >/dev/null 2>&1"
 
     # Verify dev cache exists
     assert [ -d "$HOME/dev-project/cache" ]
@@ -112,7 +117,8 @@ setup() {
     cp "$SRC_ROOT/VERSION" "$HOME/dev-project/"
     cp "$SRC_ROOT/.dev" "$HOME/dev-project/"
 
-    run zsh -c "source $HOME/dev-project/plugin.zsh >/dev/null 2>&1 && echo \$SHELL_TOOLS_ROOT"
+    # Run from $HOME to avoid auto-detection issues
+    run zsh -c "cd $HOME && source $HOME/dev-project/plugin.zsh >/dev/null 2>&1 && echo \$SHELL_TOOLS_ROOT"
     # Use pattern matching to handle /var vs /private/var on macOS
     assert_output --partial "/dev-project"
 
@@ -124,6 +130,7 @@ setup() {
     cp "$SRC_ROOT/plugin.zsh" "$HOME/.shell-tools/"
     cp "$SRC_ROOT/VERSION" "$HOME/.shell-tools/"
 
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && echo \$SHELL_TOOLS_ROOT"
+    # Run from $HOME to avoid auto-detection finding project's src/.dev
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && echo \$SHELL_TOOLS_ROOT"
     assert_output --partial "/.shell-tools"
 }

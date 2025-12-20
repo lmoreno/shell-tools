@@ -18,7 +18,8 @@ setup() {
 
 @test "Loader: cache is regenerated when VERSION changes" {
     # Initial load
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh"
+    # Run from $HOME to avoid auto-detection finding project's src/.dev
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh"
 
     # Get cache modification time (cross-platform: macOS uses -f, Linux uses -c)
     if stat -f %m "$HOME/.shell-tools/cache/init.zsh" &>/dev/null; then
@@ -32,7 +33,7 @@ setup() {
     sleep 1
 
     # Reload
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh"
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh"
 
     # Cache should be newer (cross-platform)
     if stat -f %m "$HOME/.shell-tools/cache/init.zsh" &>/dev/null; then
@@ -44,7 +45,8 @@ setup() {
 }
 
 @test "Loader: git config include is added automatically" {
-    run zsh -c "source $HOME/.shell-tools/plugin.zsh"
+    # Run from $HOME to avoid auto-detection finding project's src/.dev
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh"
 
     # Check gitconfig has include
     run git config --global --get-all include.path

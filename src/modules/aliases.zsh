@@ -253,4 +253,4 @@ fi
 # =============================================================================
 
 alias ducks='du -cksh * | sort -hr | head -n 15'
-alias df='df -h'
+alias df='df -h'alias testcmd='echo hello'
