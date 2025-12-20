@@ -20,7 +20,10 @@ init:
 	@chmod +x scripts/setup-hooks.sh tests/run
 	@git submodule update --init --recursive
 	@scripts/setup-hooks.sh
-	@echo "Project initialized successfully"
+	@echo ""
+	@echo "Project initialized successfully!"
+	@echo ""
+	@echo "💡 To activate dev mode, run: source src/plugin.zsh"
 
 # Run all tests
 test:

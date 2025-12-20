@@ -16,6 +16,27 @@
 #
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# Auto Dev Mode Detection
+# -----------------------------------------------------------------------------
+# If we're in a directory with src/.dev marker, use the dev version instead
+if [[ -z "$SHELL_TOOLS_ROOT" ]] || [[ "$SHELL_TOOLS_ROOT" != */src ]]; then
+    # Look for dev marker in current directory tree
+    local check_dir="$PWD"
+    while [[ "$check_dir" != "/" ]]; do
+        if [[ -f "$check_dir/src/.dev" ]]; then
+            # Found dev marker - redirect to dev version
+            local dev_plugin="$check_dir/src/plugin.zsh"
+            if [[ -f "$dev_plugin" ]] && [[ "$dev_plugin" != "${(%):-%x}" ]]; then
+                source "$dev_plugin"
+                return 0
+            fi
+            break
+        fi
+        check_dir="${check_dir:h}"  # Go up one directory
+    done
+fi
+
 # Auto-switch to zsh if running in bash
 # IMPORTANT: Must use POSIX-compatible syntax (no [[ ]] or zsh expansions)
 if [ -n "$BASH_VERSION" ]; then
@@ -38,6 +59,28 @@ SHELL_TOOLS_ROOT="${0:A:h}"
 if [[ -f "$SHELL_TOOLS_ROOT/.dev" ]]; then
     export SHELL_TOOLS_DEV=1
     echo "[shell-tools] 🔧 Development mode active"
+
+    # Register hook to maintain dev mode when changing directories
+    _shell_tools_maintain_dev() {
+        # If we leave and re-enter project, reload to ensure dev mode
+        local check_dir="$PWD"
+        local found_dev=0
+
+        while [[ "$check_dir" != "/" ]]; do
+            if [[ -f "$check_dir/src/.dev" ]]; then
+                found_dev=1
+                break
+            fi
+            check_dir="${check_dir:h}"
+        done
+
+        if [[ $found_dev -eq 1 ]] && [[ "$SHELL_TOOLS_ROOT" != "$check_dir/src" ]]; then
+            source "$check_dir/src/plugin.zsh"
+        fi
+    }
+
+    autoload -U add-zsh-hook 2>/dev/null
+    add-zsh-hook chpwd _shell_tools_maintain_dev 2>/dev/null
 fi
 
 # Export for use in subshells
