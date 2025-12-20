@@ -1,20 +1,109 @@
-name: Create Release
+name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
   workflow_dispatch:
     inputs:
       tag_name:
         description: 'Tag to release (e.g. v2.2.0)'
         required: true
 
+permissions:
+  contents: write
+
 jobs:
-  release:
+  test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Install Zsh
+        run: sudo apt-get install -y zsh
+
+      - name: Run Bats Tests
+        run: ./tests/run tests/
+
+  tag:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.create_tag.outputs.tag_name }}
+      tag_created: ${{ steps.create_tag.outputs.tag_created }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 2
+
+      - name: Determine tag name and check VERSION
+        id: version_check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual trigger - use provided tag
+            TAG_NAME="${{ inputs.tag_name }}"
+            echo "Using manual tag: $TAG_NAME"
+            echo "version_changed=manual" >> $GITHUB_OUTPUT
+          else
+            # Automatic trigger - check if VERSION changed
+            if git diff --name-only HEAD^..HEAD 2>/dev/null | grep -q "^src/VERSION$"; then
+              VERSION=$(cat src/VERSION | tr -d '[:space:]')
+              TAG_NAME="v$VERSION"
+              echo "VERSION file changed, tag will be: $TAG_NAME"
+              echo "version_changed=true" >> $GITHUB_OUTPUT
+            else
+              echo "VERSION file not changed, skipping tag creation"
+              echo "version_changed=false" >> $GITHUB_OUTPUT
+              echo "tag_created=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      - name: Validate semver format
+        if: steps.version_check.outputs.version_changed != 'false'
+        run: |
+          TAG_NAME="${{ steps.version_check.outputs.tag_name }}"
+
+          # Validate semver format (vMAJOR.MINOR.PATCH)
+          if [[ ! "$TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "ERROR: Invalid semver format: $TAG_NAME"
+            echo "Expected format: vMAJOR.MINOR.PATCH (e.g., v2.7.2)"
+            exit 1
+          fi
+
+          echo "✓ Valid semver format: $TAG_NAME"
+
+      - name: Create and push tag
+        id: create_tag
+        if: steps.version_check.outputs.version_changed != 'false'
+        run: |
+          TAG_NAME="${{ steps.version_check.outputs.tag_name }}"
+
+          # Check if tag already exists
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists"
+            echo "tag_created=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Create and push tag
+          echo "Creating tag $TAG_NAME"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "tag_created=true" >> $GITHUB_OUTPUT
+
+  release:
+    needs: tag
+    if: needs.tag.outputs.tag_created == 'true'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -26,7 +115,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ inputs.tag_name || github.ref_name }}
+          tag_name: ${{ needs.tag.outputs.tag_name }}
           files: shell-tools.zip
           generate_release_notes: true
           draft: false

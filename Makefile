@@ -1,17 +1,18 @@
-.PHONY: init test bump-patch bump-minor bump-major hooks help
+.PHONY: init test validate-version bump-patch bump-minor bump-major hooks help
 
 # Default target
 help:
 	@echo "Shell-Tools Makefile"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  init         - Initialize project (submodules + hooks)"
-	@echo "  test         - Run all Bats tests"
-	@echo "  bump-patch   - Bump patch version (2.3.0 -> 2.3.1)"
-	@echo "  bump-minor   - Bump minor version (2.3.0 -> 2.4.0)"
-	@echo "  bump-major   - Bump major version (2.3.0 -> 3.0.0)"
-	@echo "  hooks        - Install git hooks for development"
-	@echo "  help         - Show this help message"
+	@echo "  init            - Initialize project (submodules + hooks)"
+	@echo "  test            - Run all Bats tests"
+	@echo "  validate-version - Validate VERSION file format"
+	@echo "  bump-patch      - Bump patch version (2.3.0 -> 2.3.1)"
+	@echo "  bump-minor      - Bump minor version (2.3.0 -> 2.4.0)"
+	@echo "  bump-major      - Bump major version (2.3.0 -> 3.0.0)"
+	@echo "  hooks           - Install git hooks for development"
+	@echo "  help            - Show this help message"
 
 # Initialize project (submodules + hooks)
 init:
@@ -25,6 +26,11 @@ init:
 test:
 	@echo "Running Bats test suite..."
 	@tests/libs/bats-core/bin/bats tests/*.bats
+
+# Validate VERSION file format
+validate-version:
+	@echo "Validating VERSION file..."
+	@scripts/validate-version.sh
 
 # Bump patch version (e.g., 2.3.0 -> 2.3.1)
 bump-patch:
