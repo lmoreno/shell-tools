@@ -166,3 +166,116 @@ setup() {
 
     rm -rf "$temp_dir"
 }
+
+@test "Updater: handles rate limit error gracefully" {
+    # Create mock curl that returns 403 rate limit error
+    MOCK_CURL="$TEST_TEMP_DIR/curl"
+    cat > "$MOCK_CURL" << 'EOF'
+#!/bin/bash
+# Mock curl that returns rate limit error
+if [[ "$*" == *"api.github.com"* ]]; then
+    echo '{"message":"API rate limit exceeded","documentation_url":"https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting"}'
+    echo "403"
+else
+    /usr/bin/curl "$@"
+fi
+EOF
+    chmod +x "$MOCK_CURL"
+    export PATH="$TEST_TEMP_DIR:$PATH"
+
+    # Run st-update and check for user-friendly error message
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && st-update"
+
+    assert_failure
+    assert_output --partial "GitHub API rate limit exceeded"
+    assert_output --partial "https://github.com"
+}
+
+@test "Updater: handles forbidden error gracefully" {
+    # Create mock curl that returns 403 without rate limit message
+    MOCK_CURL="$TEST_TEMP_DIR/curl"
+    cat > "$MOCK_CURL" << 'EOF'
+#!/bin/bash
+# Mock curl that returns forbidden error
+if [[ "$*" == *"api.github.com"* ]]; then
+    echo '{"message":"Forbidden"}'
+    echo "403"
+else
+    /usr/bin/curl "$@"
+fi
+EOF
+    chmod +x "$MOCK_CURL"
+    export PATH="$TEST_TEMP_DIR:$PATH"
+
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && st-update"
+
+    assert_failure
+    assert_output --partial "Access forbidden"
+}
+
+@test "Updater: handles not found error gracefully" {
+    # Create mock curl that returns 404
+    MOCK_CURL="$TEST_TEMP_DIR/curl"
+    cat > "$MOCK_CURL" << 'EOF'
+#!/bin/bash
+# Mock curl that returns 404
+if [[ "$*" == *"api.github.com"* ]]; then
+    echo '{"message":"Not Found"}'
+    echo "404"
+else
+    /usr/bin/curl "$@"
+fi
+EOF
+    chmod +x "$MOCK_CURL"
+    export PATH="$TEST_TEMP_DIR:$PATH"
+
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && st-update"
+
+    assert_failure
+    assert_output --partial "Repository not found"
+}
+
+@test "Updater: handles network error gracefully" {
+    # Create mock curl that returns 503
+    MOCK_CURL="$TEST_TEMP_DIR/curl"
+    cat > "$MOCK_CURL" << 'EOF'
+#!/bin/bash
+# Mock curl that returns 503
+if [[ "$*" == *"api.github.com"* ]]; then
+    echo '{"message":"Service Unavailable"}'
+    echo "503"
+else
+    /usr/bin/curl "$@"
+fi
+EOF
+    chmod +x "$MOCK_CURL"
+    export PATH="$TEST_TEMP_DIR:$PATH"
+
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && st-update"
+
+    assert_failure
+    assert_output --partial "Network error (HTTP 503)"
+}
+
+@test "Updater: extracts version from successful API response" {
+    # Create mock curl that returns success
+    MOCK_CURL="$TEST_TEMP_DIR/curl"
+    cat > "$MOCK_CURL" << 'EOF'
+#!/bin/bash
+# Mock curl that returns success
+if [[ "$*" == *"api.github.com"* ]]; then
+    echo '{"tag_name":"v9.9.9","name":"Release 9.9.9"}'
+    echo "200"
+else
+    /usr/bin/curl "$@"
+fi
+EOF
+    chmod +x "$MOCK_CURL"
+    export PATH="$TEST_TEMP_DIR:$PATH"
+
+    # Test _st_get_latest_version
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && _st_get_latest_version" <<< "n"
+
+    assert_success
+    assert_output "v9.9.9"
+}
