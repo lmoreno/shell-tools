@@ -258,24 +258,13 @@ EOF
 }
 
 @test "Updater: extracts version from successful API response" {
-    # Create mock curl that returns success
-    MOCK_CURL="$TEST_TEMP_DIR/curl"
-    cat > "$MOCK_CURL" << 'EOF'
-#!/bin/bash
-# Mock curl that returns success
-if [[ "$*" == *"api.github.com"* ]]; then
-    echo '{"tag_name":"v9.9.9","name":"Release 9.9.9"}'
-    echo "200"
-else
-    /usr/bin/curl "$@"
-fi
-EOF
-    chmod +x "$MOCK_CURL"
-    export PATH="$TEST_TEMP_DIR:$PATH"
+    # Uses global mock curl from common_setup that returns current VERSION
+    local current_version
+    current_version=$(cat "$SRC_ROOT/VERSION" | tr -d '[:space:]')
 
-    # Test _st_get_latest_version
-    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && _st_get_latest_version" <<< "n"
+    # Test _st_get_latest_version extracts version correctly
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && _st_get_latest_version"
 
     assert_success
-    assert_output "v9.9.9"
+    assert_output "v${current_version}"
 }

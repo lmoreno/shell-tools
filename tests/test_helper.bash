@@ -19,6 +19,25 @@ common_setup() {
     # Source files are in src/ during development
     SRC_ROOT="$PROJECT_ROOT/src"
     export SRC_ROOT
+
+    # Mock curl to return current VERSION for GitHub API calls
+    # This prevents update prompts from hanging tests
+    local current_version
+    current_version=$(cat "$SRC_ROOT/VERSION" | tr -d '[:space:]')
+
+    mkdir -p "$TEST_TEMP_DIR/bin"
+    cat > "$TEST_TEMP_DIR/bin/curl" << EOF
+#!/bin/bash
+# Mock curl for tests - returns current version for GitHub API
+if [[ "\$*" == *"api.github.com"*"releases/latest"* ]]; then
+    echo '{"tag_name":"v${current_version}"}'
+    echo "200"
+else
+    /usr/bin/curl "\$@"
+fi
+EOF
+    chmod +x "$TEST_TEMP_DIR/bin/curl"
+    export PATH="$TEST_TEMP_DIR/bin:$PATH"
 }
 
 teardown() {

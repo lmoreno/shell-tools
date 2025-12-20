@@ -81,6 +81,20 @@ if [[ -f "$SHELL_TOOLS_ROOT/.dev" ]]; then
 
     autoload -U add-zsh-hook 2>/dev/null
     add-zsh-hook chpwd _shell_tools_maintain_dev 2>/dev/null
+else
+    # Normal mode: watch for entering dev directories
+    _shell_tools_detect_dev() {
+        local check_dir="$PWD"
+        while [[ "$check_dir" != "/" ]]; do
+            if [[ -f "$check_dir/src/.dev" ]]; then
+                source "$check_dir/src/plugin.zsh"
+                return
+            fi
+            check_dir="${check_dir:h}"
+        done
+    }
+    autoload -U add-zsh-hook 2>/dev/null
+    add-zsh-hook chpwd _shell_tools_detect_dev 2>/dev/null
 fi
 
 # Export for use in subshells
