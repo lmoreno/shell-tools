@@ -55,10 +55,13 @@ fi
 # Resolve plugin root directory (works even if symlinked)
 SHELL_TOOLS_ROOT="${0:A:h}"
 
+# Load core utilities early (needed for _st_log in dev mode message)
+source "$SHELL_TOOLS_ROOT/lib/core.zsh"
+
 # Detect development mode (.dev marker file indicates dev environment)
 if [[ -f "$SHELL_TOOLS_ROOT/.dev" ]]; then
     export SHELL_TOOLS_DEV=1
-    echo "[shell-tools] 🔧 Development mode active"
+    _st_log "🔧 Development mode active"
 
     # Register hook to maintain dev mode when changing directories
     _shell_tools_maintain_dev() {
@@ -99,11 +102,6 @@ fi
 
 # Export for use in subshells
 export SHELL_TOOLS_ROOT
-
-# -----------------------------------------------------------------------------
-# Load core utilities
-# -----------------------------------------------------------------------------
-source "$SHELL_TOOLS_ROOT/lib/core.zsh"
 
 # -----------------------------------------------------------------------------
 # Load bootstrap utilities
@@ -175,6 +173,86 @@ st-reload() {
 st-version() {
     local version="$(command cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null || echo "unknown")"
     _st_log "v$version"
+}
+
+# Show system information for debugging
+st-info() {
+    local version="$(command cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null || echo "unknown")"
+    local mode="Installed"
+    [[ -n "$SHELL_TOOLS_DEV" ]] && mode="Development"
+
+    _st_log "System Information"
+    echo ""
+    echo "Mode:           $mode"
+    echo "Version:        $version"
+
+    # Check for latest version (non-blocking, silent on error)
+    local latest_version
+    latest_version=$(_st_get_latest_version 2>/dev/null)
+    if [[ -n "$latest_version" ]]; then
+        local latest_clean="${latest_version#v}"
+        if [[ "$latest_clean" == "$version" ]]; then
+            echo "Latest:         $latest_clean (up to date)"
+        else
+            echo "Latest:         $latest_clean (update available)"
+        fi
+    else
+        echo "Latest:         (unable to check)"
+    fi
+
+    echo ""
+    echo "Paths:"
+    echo "  Root:         $SHELL_TOOLS_ROOT"
+    echo "  Cache:        $SHELL_TOOLS_ROOT/cache"
+    echo "  Modules:      $SHELL_TOOLS_ROOT/modules"
+
+    echo ""
+    echo "Configuration:"
+    echo "  Update Check: ${SHELL_TOOLS_UPDATE_CHECK:-always}"
+    echo "  Repository:   ${SHELL_TOOLS_REPO:-lmoreno/shell-tools}"
+
+    echo ""
+    echo "Modules:"
+    local module
+    for module in aliases functions env tools completions local; do
+        local module_file="$SHELL_TOOLS_ROOT/modules/${module}.zsh"
+        if [[ -f "$module_file" ]]; then
+            echo "  ✓ ${module}.zsh"
+        else
+            echo "  ✗ ${module}.zsh (not found)"
+        fi
+    done
+
+    echo ""
+    echo "Cache Status:"
+    local cached_version="$(command cat "$SHELL_TOOLS_ROOT/cache/.version" 2>/dev/null || echo "none")"
+    if [[ "$cached_version" == "$version" ]]; then
+        echo "  Version:      $cached_version (current)"
+    else
+        echo "  Version:      $cached_version (stale, run st-reload)"
+    fi
+
+    if [[ -f "$SHELL_TOOLS_ROOT/cache/init.zsh" ]]; then
+        local cache_date
+        cache_date=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$SHELL_TOOLS_ROOT/cache/init.zsh" 2>/dev/null || \
+                     stat -c "%y" "$SHELL_TOOLS_ROOT/cache/init.zsh" 2>/dev/null | cut -d. -f1 || \
+                     echo "unknown")
+        echo "  Generated:    $cache_date"
+    else
+        echo "  Generated:    (cache missing)"
+    fi
+
+    echo ""
+    echo "Git Integration:"
+    local gitconfig="$HOME/.gitconfig"
+    local git_aliases="$SHELL_TOOLS_ROOT/cache/git-aliases"
+    if [[ -f "$gitconfig" ]] && grep -q "path.*$git_aliases" "$gitconfig" 2>/dev/null; then
+        echo "  Include:      ~/.gitconfig includes cache/git-aliases"
+    elif [[ -f "$git_aliases" ]]; then
+        echo "  Include:      cache/git-aliases exists (not in gitconfig)"
+    else
+        echo "  Include:      not configured"
+    fi
 }
 
 # -----------------------------------------------------------------------------

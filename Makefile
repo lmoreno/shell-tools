@@ -1,4 +1,4 @@
-.PHONY: init test validate-version bump-patch bump-minor bump-major hooks help
+.PHONY: init test validate-version bump-patch bump-minor bump-major hooks info help
 
 # Default target
 help:
@@ -7,6 +7,7 @@ help:
 	@echo "Available targets:"
 	@echo "  init            - Initialize project (submodules + hooks)"
 	@echo "  test            - Run all Bats tests"
+	@echo "  info            - Show system information (st-info)"
 	@echo "  validate-version - Validate VERSION file format"
 	@echo "  bump-patch      - Bump patch version (2.3.0 -> 2.3.1)"
 	@echo "  bump-minor      - Bump minor version (2.3.0 -> 2.4.0)"
@@ -73,3 +74,7 @@ hooks:
 	@echo "Installing git hooks..."
 	@bash scripts/setup-hooks.sh
 	@echo "Git hooks installed successfully"
+
+# Show system information
+info:
+	@zsh -c 'source src/plugin.zsh && st-info'
