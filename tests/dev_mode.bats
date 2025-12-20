@@ -134,3 +134,58 @@ setup() {
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && echo \$SHELL_TOOLS_ROOT"
     assert_output --partial "/.shell-tools"
 }
+
+@test "Dev Mode: chpwd hook registered in normal mode" {
+    # Install normal version WITHOUT .dev file
+    mkdir -p "$HOME/.shell-tools"
+    cp -r "$SRC_ROOT/lib" "$HOME/.shell-tools/"
+    cp -r "$SRC_ROOT/modules" "$HOME/.shell-tools/"
+    cp -r "$SRC_ROOT/tools" "$HOME/.shell-tools/"
+    cp "$SRC_ROOT/plugin.zsh" "$HOME/.shell-tools/"
+    cp "$SRC_ROOT/VERSION" "$HOME/.shell-tools/"
+    # Explicitly NOT copying .dev file
+
+    # Source plugin and verify _shell_tools_detect_dev function exists
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && type _shell_tools_detect_dev"
+    assert_success
+    assert_output --partial "function"
+}
+
+@test "Dev Mode: auto-switches when entering dev project directory" {
+    # Install normal version at ~/.shell-tools (WITHOUT .dev)
+    mkdir -p "$HOME/.shell-tools"
+    cp -r "$SRC_ROOT/lib" "$HOME/.shell-tools/"
+    cp -r "$SRC_ROOT/modules" "$HOME/.shell-tools/"
+    cp -r "$SRC_ROOT/tools" "$HOME/.shell-tools/"
+    cp "$SRC_ROOT/plugin.zsh" "$HOME/.shell-tools/"
+    cp "$SRC_ROOT/VERSION" "$HOME/.shell-tools/"
+
+    # Create a dev project at ~/projects/my-dev-project/src/
+    mkdir -p "$HOME/projects/my-dev-project/src"
+    cp -r "$SRC_ROOT/lib" "$HOME/projects/my-dev-project/src/"
+    cp -r "$SRC_ROOT/modules" "$HOME/projects/my-dev-project/src/"
+    cp -r "$SRC_ROOT/tools" "$HOME/projects/my-dev-project/src/"
+    cp "$SRC_ROOT/plugin.zsh" "$HOME/projects/my-dev-project/src/"
+    cp "$SRC_ROOT/VERSION" "$HOME/projects/my-dev-project/src/"
+    cp "$SRC_ROOT/.dev" "$HOME/projects/my-dev-project/src/"  # Include .dev marker
+
+    # Source normal plugin from $HOME, then cd into dev project and call chpwd hook
+    # The hook should detect src/.dev and switch to dev mode
+    run zsh -c "
+        cd $HOME
+        source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1
+        # Verify we're in normal mode initially
+        [[ -z \$SHELL_TOOLS_DEV ]] || exit 1
+        # Simulate cd into dev project
+        cd $HOME/projects/my-dev-project
+        # Call the chpwd hook directly (since we can't trigger real chpwd in subshell)
+        # Note: This sources the dev plugin which outputs messages - we just check the result
+        _shell_tools_detect_dev
+        # Check if dev mode is now active
+        echo \"DEV_MODE_RESULT:\$SHELL_TOOLS_DEV\"
+    "
+    assert_success
+    # Check dev mode message was shown and SHELL_TOOLS_DEV=1
+    assert_output --partial "Development mode active"
+    assert_output --partial "DEV_MODE_RESULT:1"
+}
