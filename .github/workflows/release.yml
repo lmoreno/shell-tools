@@ -3,6 +3,8 @@ name: Release
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/VERSION'
   workflow_dispatch:
     inputs:
       tag_name:
