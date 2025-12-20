@@ -19,7 +19,7 @@ help:
 # Initialize project (submodules + hooks)
 init:
 	@echo "Initializing project..."
-	@chmod +x scripts/setup-hooks.sh tests/run
+	@chmod +x scripts/setup-hooks.sh scripts/pre-commit.sh tests/run
 	@git submodule update --init --recursive
 	@scripts/setup-hooks.sh
 	@echo ""

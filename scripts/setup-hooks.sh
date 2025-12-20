@@ -8,27 +8,8 @@ mkdir -p "$HOOK_DIR"
 
 cat > "$PRE_COMMIT" << 'EOF'
 #!/bin/bash
-
-# Validate VERSION first (fast fail)
-echo "🔍 Validating VERSION file..."
-./scripts/validate-version.sh
-if [ $? -ne 0 ]; then
-    echo "❌ VERSION validation failed. Commit aborted."
-    exit 1
-fi
-
-# Run tests
-echo "🏃 Running pre-commit tests..."
-./tests/run tests/
-EXIT_CODE=$?
-
-if [ $EXIT_CODE -ne 0 ]; then
-    echo "❌ Tests failed. Commit aborted."
-    exit 1
-fi
-
-echo "✅ All checks passed."
-exit 0
+# Wrapper that calls the actual pre-commit script
+exec ./scripts/pre-commit.sh
 EOF
 
 chmod +x "$PRE_COMMIT"
