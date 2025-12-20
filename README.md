@@ -151,12 +151,32 @@ st-update    # Check and install updates manually
 
 ## Uninstallation
 
+Use the built-in uninstall command for clean removal:
+
+```bash
+st-uninstall
+```
+
+This will:
+- Remove ~/.shell-tools/ directory
+- Remove the source line from ~/.zshrc
+- Remove git include from ~/.gitconfig
+- Offer to preserve any customizations (local.zsh)
+- Optionally remove Oh-My-Zsh if it was installed by shell-tools
+
+### Manual Uninstallation
+
+If you prefer to uninstall manually:
+
 ```bash
 # Remove installation
 rm -rf ~/.shell-tools
 
 # Remove from ~/.zshrc
 # Delete the line: source ~/.shell-tools/plugin.zsh
+
+# Remove git include from ~/.gitconfig
+git config --global --unset include.path ~/.shell-tools/cache/git-aliases
 ```
 
 ## Usage
@@ -165,6 +185,9 @@ rm -rf ~/.shell-tools
 |---------|-------------|
 | `st-reload` | Regenerate cache and reload (after editing modules) |
 | `st-version` | Show current shell-tools version |
+| `st-info` | Show system information for debugging |
+| `st-update` | Check for and install updates |
+| `st-uninstall` | Clean removal with confirmation prompts |
 
 ## Directory Structure
 
@@ -175,7 +198,9 @@ rm -rf ~/.shell-tools
 ├── lib/
 │   ├── core.zsh            # Logging utilities
 │   ├── bootstrap.zsh       # First-run tool installation
-│   └── loader.zsh          # Cache generation
+│   ├── loader.zsh          # Cache generation
+│   ├── updater.zsh         # Auto-update system
+│   └── uninstaller.zsh     # Clean removal
 ├── modules/
 │   ├── aliases.zsh         # Shell aliases
 │   ├── functions.zsh       # Utility functions
