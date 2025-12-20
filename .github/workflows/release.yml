@@ -20,6 +20,9 @@ jobs:
         with:
           submodules: true
 
+      - name: Validate VERSION file format
+        run: ./scripts/validate-version.sh
+
       - name: Install Zsh
         run: sudo apt-get install -y zsh
 
@@ -35,7 +38,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 2
 
       - name: Determine tag name and check VERSION
@@ -63,19 +65,19 @@ jobs:
 
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
-      - name: Validate semver format
+      - name: Validate tag format
         if: steps.version_check.outputs.version_changed != 'false'
         run: |
           TAG_NAME="${{ steps.version_check.outputs.tag_name }}"
 
-          # Validate semver format (vMAJOR.MINOR.PATCH)
-          if [[ ! "$TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "ERROR: Invalid semver format: $TAG_NAME"
+          # Validate tag starts with 'v' (VERSION file format already validated in test job)
+          if [[ ! "$TAG_NAME" =~ ^v ]]; then
+            echo "ERROR: Tag must start with 'v': $TAG_NAME"
             echo "Expected format: vMAJOR.MINOR.PATCH (e.g., v2.7.2)"
             exit 1
           fi
 
-          echo "✓ Valid semver format: $TAG_NAME"
+          echo "✓ Valid tag format: $TAG_NAME"
 
       - name: Create and push tag
         id: create_tag
