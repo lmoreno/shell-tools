@@ -249,9 +249,10 @@ st-info() {
     fi
     printf "  ${bold}${dim}%-14s${reset} %s\n" "Mode" "$mode"
     printf "  ${bold}${dim}%-14s${reset} %s %s\n" "Version" "$version" "$version_status"
-    printf "  ${bold}${dim}%-14s${reset} %s\n" "Installed" "$(_st_format_timestamp "$installed_at")"
-    printf "  ${bold}${dim}%-14s${reset} %s\n" "Last Update" "$(_st_format_timestamp "$last_updated")"
-    printf "  ${bold}${dim}%-14s${reset} %s\n" "Last Check" "$(_st_format_timestamp "$last_check")"
+    # Only show timestamps if we have them (avoids misleading "never" for old installs)
+    [[ -n "$installed_at" ]] && printf "  ${bold}${dim}%-14s${reset} %s\n" "Install Date" "$(_st_format_timestamp "$installed_at")"
+    [[ -n "$last_updated" ]] && printf "  ${bold}${dim}%-14s${reset} %s\n" "Last Update" "$(_st_format_timestamp "$last_updated")"
+    [[ -n "$last_check" ]] && printf "  ${bold}${dim}%-14s${reset} %s\n" "Last Check" "$(_st_format_timestamp "$last_check")"
 
     # Cache section
     echo ""

@@ -127,12 +127,31 @@ setup() {
     assert_output --partial "Status"
 }
 
-@test "Info: shows timestamps section" {
+@test "Info: shows timestamps when files exist" {
+    # Create timestamp files
+    echo "1703123456" > "$HOME/.shell-tools/cache/.installed_at"
+    echo "1703123789" > "$HOME/.shell-tools/cache/.last_updated"
+    echo "1703124000" > "$HOME/.shell-tools/cache/.last_update_check"
+
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Installed"
+    assert_output --partial "Install Date"
     assert_output --partial "Last Update"
     assert_output --partial "Last Check"
+}
+
+@test "Info: hides timestamps when files missing" {
+    # Ensure no timestamp files exist
+    rm -f "$HOME/.shell-tools/cache/.installed_at"
+    rm -f "$HOME/.shell-tools/cache/.last_updated"
+    rm -f "$HOME/.shell-tools/cache/.last_update_check"
+
+    # Disable update check to prevent .last_update_check from being created during plugin load
+    run zsh -c "cd $HOME && export SHELL_TOOLS_UPDATE_CHECK=never && source $HOME/.shell-tools/plugin.zsh && st-info"
+    assert_success
+    refute_output --partial "Install Date"
+    refute_output --partial "Last Update"
+    refute_output --partial "Last Check"
 }
 
 @test "Info: shows shell-tools header" {
