@@ -57,3 +57,22 @@ _st_sed_i() {
         sed -i "$@"
     fi
 }
+
+# Format Unix timestamp to human readable date
+_st_format_timestamp() {
+    local ts="$1"
+    [[ -z "$ts" || "$ts" == "0" ]] && echo "never" && return
+    # macOS
+    if _st_is_macos; then
+        date -r "$ts" "+%Y-%m-%d %H:%M" 2>/dev/null && return
+    else
+        # Linux
+        date -d "@$ts" "+%Y-%m-%d %H:%M" 2>/dev/null && return
+    fi
+    echo "unknown"
+}
+
+# Shorten path by replacing $HOME with ~
+_st_shorten_path() {
+    echo "${1/#$HOME/~}"
+}

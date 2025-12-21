@@ -166,6 +166,9 @@ _st_perform_update() {
     # Cleanup
     rm -rf "$temp_dir"
 
+    # Record update timestamp
+    echo "$(date +%s)" > "$SHELL_TOOLS_ROOT/cache/.last_updated"
+
     _st_success "Updated to $new_version!"
     return 0
 }
