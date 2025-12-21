@@ -69,7 +69,7 @@ alias dt='cd ~/Desktop'
 alias vz='vim ~/.zshrc'
 alias sz='source ~/.zshrc'
 alias srczsh='source ~/.zshrc'
-alias reload='source ~/.zshrc'
+alias reload='st-reload'
 alias zshconf='vim ~/.zshrc'
 
 # Shortcuts using bat (if available, else fallback to cat/vim?)

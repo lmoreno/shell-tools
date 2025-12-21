@@ -85,6 +85,10 @@ mv "$TEMP_DIR"/.[!.]* "$INSTALL_DIR" 2>/dev/null || true
 
 rm -rf "$TEMP_DIR"
 
+# Record installation timestamp
+mkdir -p "$INSTALL_DIR/cache"
+date +%s > "$INSTALL_DIR/cache/.installed_at"
+
 echo "   ✓ Installed $VERSION"
 
 # Add to .zshrc if not already present

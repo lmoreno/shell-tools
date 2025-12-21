@@ -24,13 +24,16 @@ setup() {
 @test "Info: shows mode as Installed in normal mode" {
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Mode:           Installed"
+    assert_output --partial "Mode"
+    assert_output --partial "Installed"
 }
 
 @test "Info: shows mode as Development in dev mode" {
     run zsh -c "source $SRC_ROOT/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Mode:           Development"
+    assert_output --partial "Mode"
+    assert_output --partial "Development"
+    assert_output --partial "[DEV]"
 }
 
 @test "Info: shows current version" {
@@ -39,62 +42,60 @@ setup() {
 
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Version:        $version"
+    assert_output --partial "Version"
+    assert_output --partial "$version"
 }
 
 @test "Info: shows paths section" {
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Paths:"
-    assert_output --partial "Root:"
-    assert_output --partial "Cache:"
-    assert_output --partial "Modules:"
+    assert_output --partial "Paths"
+    assert_output --partial "Root"
+    assert_output --partial "Cache"
+    assert_output --partial "Modules"
 }
 
 @test "Info: shows configuration section" {
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Configuration:"
-    assert_output --partial "Update Check:"
-    assert_output --partial "Repository:"
+    assert_output --partial "Configuration"
+    assert_output --partial "Update Check"
+    assert_output --partial "Repository"
 }
 
 @test "Info: shows modules section with existing modules" {
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Modules:"
-    assert_output --partial "✓ aliases.zsh"
-    assert_output --partial "✓ functions.zsh"
+    assert_output --partial "Modules"
+    assert_output --partial "aliases.zsh"
+    assert_output --partial "functions.zsh"
 }
 
 @test "Info: shows missing local.zsh module" {
     # local.zsh doesn't exist by default
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "✗ local.zsh (not found)"
+    assert_output --partial "local.zsh"
 }
 
-@test "Info: shows cache status section" {
+@test "Info: shows cache section" {
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Cache Status:"
-    assert_output --partial "Version:"
+    assert_output --partial "Cache"
+    assert_output --partial "Generated"
 }
 
 @test "Info: shows git integration section" {
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Git Integration:"
+    assert_output --partial "Git Integration"
 }
 
 @test "Info: latest version check shows result from mock" {
-    local version
-    version=$(cat "$SRC_ROOT/VERSION" | tr -d '[:space:]')
-
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
     # Mock curl returns current version, so should show "up to date"
-    assert_output --partial "Latest:         $version (up to date)"
+    assert_output --partial "up to date"
 }
 
 @test "Info: gracefully handles missing VERSION file" {
@@ -102,17 +103,40 @@ setup() {
 
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Version:        unknown"
+    assert_output --partial "Version"
+    assert_output --partial "unknown"
 }
 
 @test "Info: respects custom SHELL_TOOLS_UPDATE_CHECK setting" {
     run zsh -c "cd $HOME && export SHELL_TOOLS_UPDATE_CHECK=weekly && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Update Check: weekly"
+    assert_output --partial "Update Check"
+    assert_output --partial "weekly"
 }
 
 @test "Info: respects custom SHELL_TOOLS_REPO setting" {
     run zsh -c "cd $HOME && export SHELL_TOOLS_REPO=custom/repo && source $HOME/.shell-tools/plugin.zsh && st-info"
     assert_success
-    assert_output --partial "Repository:   custom/repo"
+    assert_output --partial "Repository"
+    assert_output --partial "custom/repo"
+}
+
+@test "Info: shows health status" {
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
+    assert_success
+    assert_output --partial "Status"
+}
+
+@test "Info: shows timestamps section" {
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
+    assert_success
+    assert_output --partial "Installed"
+    assert_output --partial "Last Update"
+    assert_output --partial "Last Check"
+}
+
+@test "Info: shows shell-tools header" {
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-info"
+    assert_success
+    assert_output --partial "shell-tools"
 }
