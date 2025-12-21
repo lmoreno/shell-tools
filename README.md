@@ -289,6 +289,7 @@ The project automatically detects when you're in development mode:
 - **Dev Mode**: Detected by presence of `.dev` in `src/` (`.dev` is excluded from release zips)
 - **Isolated Cache**: Uses `src/cache/` instead of installed cache
 - **Visual Indicator**: All logs show `[DEV]` prefix
+- **Updates Disabled**: `st-update` and auto-update checks are disabled to prevent overwriting dev code
 - **Zero Config**: Just source `src/plugin.zsh` to activate
 
 Test the plugin from source:
