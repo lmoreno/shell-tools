@@ -172,6 +172,12 @@ _st_perform_update() {
 
 # Main update check function (called from st-reload)
 _st_check_for_updates() {
+    # Skip updates in dev mode - you're developing, not using releases
+    if [[ -n "$SHELL_TOOLS_DEV" ]]; then
+        _st_log "Update check skipped (dev mode)"
+        return 0
+    fi
+
     # Check if we should check for updates
     _st_should_check_updates || return 0
 
@@ -210,6 +216,13 @@ _st_check_for_updates() {
 
 # Manual update command
 st-update() {
+    # Refuse to update in dev mode - you're developing, not using releases
+    if [[ -n "$SHELL_TOOLS_DEV" ]]; then
+        _st_warn "Updates disabled in development mode"
+        _st_log "You're running from source - use git to manage versions"
+        return 1
+    fi
+
     local current_version=$(cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null || echo "0.0.0")
     local latest_version error_msg
 

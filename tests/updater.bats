@@ -268,3 +268,19 @@ EOF
     assert_success
     assert_output "v${current_version}"
 }
+
+@test "Updater: st-update refuses in dev mode" {
+    # Source dev version (SRC_ROOT has .dev marker)
+    run zsh -c "source $SRC_ROOT/plugin.zsh 2>/dev/null && st-update"
+    assert_failure
+    assert_output --partial "disabled in development mode"
+    assert_output --partial "use git to manage versions"
+}
+
+@test "Updater: _st_check_for_updates skips in dev mode" {
+    # Source dev version - should log skip message and not prompt
+    run zsh -c "source $SRC_ROOT/plugin.zsh 2>/dev/null && _st_check_for_updates"
+    assert_success
+    assert_output --partial "Update check skipped"
+    refute_output --partial "Update now"
+}
