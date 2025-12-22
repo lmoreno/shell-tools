@@ -184,7 +184,8 @@ EOF
     export PATH="$TEST_TEMP_DIR:$PATH"
 
     # Run st-update and check for user-friendly error message
-    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && st-update"
+    # Mock _st_is_interactive to allow st-update to run in test
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && _st_is_interactive() { return 0 } && st-update"
 
     assert_failure
     assert_output --partial "GitHub API rate limit exceeded"
@@ -207,7 +208,8 @@ EOF
     chmod +x "$MOCK_CURL"
     export PATH="$TEST_TEMP_DIR:$PATH"
 
-    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && st-update"
+    # Mock _st_is_interactive to allow st-update to run in test
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && _st_is_interactive() { return 0 } && st-update"
 
     assert_failure
     assert_output --partial "Access forbidden"
@@ -229,7 +231,8 @@ EOF
     chmod +x "$MOCK_CURL"
     export PATH="$TEST_TEMP_DIR:$PATH"
 
-    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && st-update"
+    # Mock _st_is_interactive to allow st-update to run in test
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && _st_is_interactive() { return 0 } && st-update"
 
     assert_failure
     assert_output --partial "Repository not found"
@@ -251,7 +254,8 @@ EOF
     chmod +x "$MOCK_CURL"
     export PATH="$TEST_TEMP_DIR:$PATH"
 
-    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && st-update"
+    # Mock _st_is_interactive to allow st-update to run in test
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh >/dev/null 2>&1 && _st_is_interactive() { return 0 } && st-update"
 
     assert_failure
     assert_output --partial "Network error (HTTP 503)"
@@ -271,7 +275,8 @@ EOF
 
 @test "Updater: st-update refuses in dev mode" {
     # Source dev version (SRC_ROOT has .dev marker)
-    run zsh -c "source $SRC_ROOT/plugin.zsh 2>/dev/null && st-update"
+    # Mock _st_is_interactive to allow st-update to run, then test dev mode check
+    run zsh -c "source $SRC_ROOT/plugin.zsh 2>/dev/null && _st_is_interactive() { return 0 } && st-update"
     assert_failure
     assert_output --partial "disabled in development mode"
     assert_output --partial "use git to manage versions"
