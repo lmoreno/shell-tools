@@ -1,36 +1,41 @@
 # shell-tools core utilities
 # Provides logging helpers and utility functions
 
-# Logging functions with colored output
+# Check if running in an interactive shell (for non-interactive SSH support)
+_st_is_interactive() {
+    [[ -o interactive ]] && [[ -t 0 ]]
+}
+
+# Logging functions with colored output (output to stderr to not break scripts)
 _st_log() {
     if [[ -n "$SHELL_TOOLS_DEV" ]]; then
-        print -P "%F{blue}[shell-tools] [DEV]%f $1"
+        print -P "%F{blue}[shell-tools] [DEV]%f $1" >&2
     else
-        print -P "%F{blue}[shell-tools]%f $1"
+        print -P "%F{blue}[shell-tools]%f $1" >&2
     fi
 }
 
 _st_warn() {
     if [[ -n "$SHELL_TOOLS_DEV" ]]; then
-        print -P "%F{yellow}[shell-tools] [DEV]%f $1"
+        print -P "%F{yellow}[shell-tools] [DEV]%f $1" >&2
     else
-        print -P "%F{yellow}[shell-tools]%f $1"
+        print -P "%F{yellow}[shell-tools]%f $1" >&2
     fi
 }
 
 _st_error() {
     if [[ -n "$SHELL_TOOLS_DEV" ]]; then
-        print -P "%F{red}[shell-tools] [DEV]%f $1"
+        print -P "%F{red}[shell-tools] [DEV]%f $1" >&2
     else
-        print -P "%F{red}[shell-tools]%f $1"
+        print -P "%F{red}[shell-tools]%f $1" >&2
     fi
 }
 
 _st_success() {
     if [[ -n "$SHELL_TOOLS_DEV" ]]; then
-        print -P "%F{green}[shell-tools] [DEV]%f $1"
+        print -P "%F{green}[shell-tools] [DEV]%f $1" >&2
     else
-        print -P "%F{green}[shell-tools]%f $1"
+        print -P "%F{green}[shell-tools]%f $1" >&2
     fi
 }
 

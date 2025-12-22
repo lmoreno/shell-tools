@@ -199,26 +199,35 @@ _st_check_for_updates() {
         return 0
     fi
 
-    # Check if update available
+    # Check if update available (only prompt in interactive mode to avoid hanging SSH)
     if _st_version_gt "$latest_version" "$current_version"; then
-        echo ""
-        _st_warn "🎉 New version available: $latest_version (current: $current_version)"
-        echo ""
-        read "update?Update now? (y/n): "
+        if _st_is_interactive; then
+            echo "" >&2
+            _st_warn "🎉 New version available: $latest_version (current: $current_version)"
+            echo "" >&2
+            read -r "update?Update now? (y/n): "
 
-        if [[ "$update" =~ ^[Yy]$ ]]; then
-            _st_perform_update "$latest_version" && {
-                _st_log "Reloading shell with new version..."
-                exec zsh
-            }
-        else
-            _st_log "Skipped. Run 'st-update' later to update."
+            if [[ "$update" =~ ^[Yy]$ ]]; then
+                _st_perform_update "$latest_version" && {
+                    _st_log "Reloading shell with new version..."
+                    exec zsh
+                }
+            else
+                _st_log "Skipped. Run 'st-update' later to update."
+            fi
         fi
+        # In non-interactive mode, silently skip the prompt
     fi
 }
 
 # Manual update command
 st-update() {
+    # Require interactive shell for updates
+    if ! _st_is_interactive; then
+        echo "st-update requires an interactive shell" >&2
+        return 1
+    fi
+
     # Refuse to update in dev mode - you're developing, not using releases
     if [[ -n "$SHELL_TOOLS_DEV" ]]; then
         _st_warn "Updates disabled in development mode"
@@ -263,7 +272,7 @@ st-update() {
 
     if _st_version_gt "$latest_version" "$current_version"; then
         _st_warn "Update available: $current_version → $latest_version"
-        read "update?Update now? (y/n): "
+        read -r "update?Update now? (y/n): "
 
         if [[ "$update" =~ ^[Yy]$ ]]; then
             _st_perform_update "$latest_version" && {
