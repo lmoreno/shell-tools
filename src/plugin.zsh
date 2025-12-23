@@ -37,19 +37,24 @@ if [[ -z "$SHELL_TOOLS_ROOT" ]] || [[ "$SHELL_TOOLS_ROOT" != */src ]]; then
     done
 fi
 
-# Auto-switch to zsh if running in bash
+# Auto-switch to zsh if running in bash (interactive shells only)
 # IMPORTANT: Must use POSIX-compatible syntax (no [[ ]] or zsh expansions)
 if [ -n "$BASH_VERSION" ]; then
-    if command -v zsh >/dev/null 2>&1; then
-        export SHELL=$(command -v zsh)
-        exec zsh
-    else
-        echo "[shell-tools] ERROR: shell-tools requires zsh, but zsh is not installed."
-        echo "[shell-tools] Install zsh:"
-        echo "  macOS:  brew install zsh"
-        echo "  Linux:  sudo apt install zsh  # or: sudo yum install zsh"
-        return 1 2>/dev/null || exit 1
-    fi
+    # Only switch in interactive shells to avoid breaking SSH commands
+    case $- in
+        *i*)
+            if command -v zsh >/dev/null 2>&1; then
+                export SHELL=$(command -v zsh)
+                exec zsh
+            else
+                echo "[shell-tools] ERROR: shell-tools requires zsh, but zsh is not installed."
+                echo "[shell-tools] Install zsh:"
+                echo "  macOS:  brew install zsh"
+                echo "  Linux:  sudo apt install zsh  # or: sudo yum install zsh"
+                return 1 2>/dev/null || exit 1
+            fi
+            ;;
+    esac
 fi
 
 # Resolve plugin root directory (works even if symlinked)
@@ -118,6 +123,12 @@ fi
 
 # Always check and install Oh-My-Zsh if missing (even on updates)
 _st_bootstrap_omz
+
+# -----------------------------------------------------------------------------
+# Run migrations (fix old configurations)
+# -----------------------------------------------------------------------------
+source "$SHELL_TOOLS_ROOT/lib/migrate.zsh"
+_st_run_migrations
 
 # -----------------------------------------------------------------------------
 # Load the loader
