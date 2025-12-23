@@ -56,13 +56,89 @@ EOF
     run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && echo 'done'"
     assert_success
 
-    # Check that migration happened
+    # Check that migration happened - new source line added
     run grep "bash-init.sh" "$HOME/.bashrc"
     assert_success
+
+    # Check that old exec zsh was removed
+    run grep "exec zsh" "$HOME/.bashrc"
+    assert_failure
 
     # Check that backup was created
     run ls "$HOME/.bashrc.st-backup-"* 2>/dev/null
     assert_success
+}
+
+@test "Migration: migrated bashrc works in non-interactive mode" {
+    # Create old-style .bashrc
+    cat > "$HOME/.bashrc" << 'EOF'
+# Auto-switch to zsh (minimal .bashrc)
+if [ -x "$(command -v zsh)" ] && [ -z "$ZSH_VERSION" ]; then
+    export SHELL=$(command -v zsh)
+    exec zsh
+fi
+EOF
+
+    # Run migration
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && echo 'done'"
+    assert_success
+
+    # Create a test script that sources the migrated .bashrc
+    cat > "$TEST_TEMP_DIR/test.sh" << 'EOF'
+#!/bin/bash
+source ~/.bashrc
+echo "still in bash"
+EOF
+    chmod +x "$TEST_TEMP_DIR/test.sh"
+
+    # Run the script - should NOT hang or switch to zsh
+    # Note: if it hangs, the test framework will timeout
+    run bash "$TEST_TEMP_DIR/test.sh"
+    assert_success
+    assert_output "still in bash"
+}
+
+@test "Migration: handles bashrc without comment marker" {
+    # Create old-style .bashrc WITHOUT any comment
+    cat > "$HOME/.bashrc" << 'EOF'
+if [ -x "$(command -v zsh)" ] && [ -z "$ZSH_VERSION" ]; then
+    export SHELL=$(command -v zsh)
+    exec zsh
+fi
+EOF
+
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && echo 'done'"
+    assert_success
+
+    run grep "bash-init.sh" "$HOME/.bashrc"
+    assert_success
+
+    run grep "exec zsh" "$HOME/.bashrc"
+    assert_failure
+}
+
+@test "Migration: fixes broken migration with both old and new code" {
+    # Simulate the broken state: has bash-init.sh BUT also old code
+    cat > "$HOME/.bashrc" << 'EOF'
+# shell-tools bash initialization
+[[ -f ~/.shell-tools/lib/bash-init.sh ]] && source ~/.shell-tools/lib/bash-init.sh
+
+if [ -x "$(command -v zsh)" ] && [ -z "$ZSH_VERSION" ]; then
+    export SHELL=$(command -v zsh)
+    exec zsh
+fi
+EOF
+
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && echo 'done'"
+    assert_success
+
+    # Should still have bash-init.sh
+    run grep "bash-init.sh" "$HOME/.bashrc"
+    assert_success
+
+    # Old exec zsh should be removed
+    run grep "exec zsh" "$HOME/.bashrc"
+    assert_failure
 }
 
 @test "Migration: skips if already migrated" {

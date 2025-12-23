@@ -12,9 +12,13 @@ _st_migrate_bashrc() {
     # Skip if no .bashrc
     [[ ! -f "$bashrc" ]] && return 0
 
-    # Skip if already using new format (sources bash-init.sh)
+    # Skip if already using new format (sources bash-init.sh) AND old code is gone
     if grep -q "bash-init.sh" "$bashrc" 2>/dev/null; then
-        return 0
+        # Already has new source line - but check if old code remains
+        if ! grep -q "exec zsh" "$bashrc" 2>/dev/null || grep -q 'case \$-' "$bashrc" 2>/dev/null; then
+            return 0  # Clean state, skip
+        fi
+        # Has bash-init.sh BUT also has old exec zsh without case $- - needs cleanup
     fi
 
     # Check for old pattern: exec zsh without interactive check (case $-)
@@ -37,8 +41,10 @@ _st_migrate_bashrc() {
         local added_source=0
 
         while IFS= read -r line || [[ -n "$line" ]]; do
-            # Detect start of old shell-tools block (comment marker)
-            if [[ "$line" == *"Auto-switch to zsh"* ]] || [[ "$line" == *"shell-tools"* && "$line" == "#"* ]]; then
+            # Detect start of old shell-tools block (comment marker or if statement)
+            if [[ "$line" == *"Auto-switch to zsh"* ]] || \
+               [[ "$line" == *"shell-tools"* && "$line" == "#"* ]] || \
+               [[ "$line" == "if "* && "$line" == *"command -v zsh"* ]]; then
                 in_shell_tools_block=1
                 # Add new source line once at the start of old block
                 if [[ $added_source -eq 0 ]]; then
