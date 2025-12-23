@@ -40,10 +40,15 @@ _st_migrate_bashrc() {
         local in_shell_tools_block=0
         local added_source=0
 
+        # Check if new source line already exists (from broken migration)
+        if grep -q 'bash-init.sh' "$bashrc" 2>/dev/null; then
+            added_source=1
+        fi
+
         while IFS= read -r line || [[ -n "$line" ]]; do
-            # Detect start of old shell-tools block (comment marker or if statement)
+            # Detect start of old shell-tools block (old comment or if statement)
+            # Note: Do NOT match "# shell-tools bash initialization" - that's the NEW format
             if [[ "$line" == *"Auto-switch to zsh"* ]] || \
-               [[ "$line" == *"shell-tools"* && "$line" == "#"* ]] || \
                [[ "$line" == "if "* && "$line" == *"command -v zsh"* ]]; then
                 in_shell_tools_block=1
                 # Add new source line once at the start of old block

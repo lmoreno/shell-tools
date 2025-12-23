@@ -52,3 +52,22 @@ setup() {
     run git config --global --get-all include.path
     assert_output --partial ".shell-tools/cache/git-aliases"
 }
+
+@test "Loader: st-reload does not trigger First run detected" {
+    # Initial load to create cache
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh"
+    assert_success
+
+    # Verify cache exists
+    [[ -f "$HOME/.shell-tools/cache/init.zsh" ]]
+
+    # Run st-reload and capture output
+    run zsh -c "cd $HOME && source $HOME/.shell-tools/plugin.zsh && st-reload"
+    assert_success
+
+    # Should NOT see "First run detected"
+    refute_output --partial "First run detected"
+
+    # Cache should still exist
+    [[ -f "$HOME/.shell-tools/cache/init.zsh" ]]
+}
