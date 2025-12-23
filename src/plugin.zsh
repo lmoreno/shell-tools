@@ -175,7 +175,8 @@ source "$SHELL_TOOLS_ROOT/lib/uninstaller.zsh"
 # Force cache regeneration and reload
 st-reload() {
     _st_log "Regenerating cache..."
-    rm -f "$SHELL_TOOLS_ROOT/cache/init.zsh"
+    # Only delete .version to trigger regeneration - keep init.zsh
+    # This prevents "First run detected" if update happens mid-reload
     rm -f "$SHELL_TOOLS_ROOT/cache/.version"
 
     # Check for updates before reloading
