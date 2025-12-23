@@ -66,6 +66,49 @@ _st_needs_regenerate() {
     return 1
 }
 
+# Check if minimal cache needs regeneration
+_st_needs_minimal_regenerate() {
+    local cache_file="$SHELL_TOOLS_ROOT/cache/init-minimal.zsh"
+    local version_file="$SHELL_TOOLS_ROOT/cache/.version-minimal"
+    local current_version=$(cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null)
+    local cached_version=$(cat "$version_file" 2>/dev/null)
+
+    [[ ! -f "$cache_file" ]] || [[ "$current_version" != "$cached_version" ]]
+}
+
+# Generate minimal cache (for minimal mode - aliases + functions only)
+_st_generate_minimal_cache() {
+    local cache_dir="$SHELL_TOOLS_ROOT/cache"
+    local cache_file="$cache_dir/init-minimal.zsh"
+    local version="$(cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null || echo "unknown")"
+
+    mkdir -p "$cache_dir"
+
+    # Generate minimal cache with only aliases and functions
+    {
+        echo "# shell-tools minimal cache"
+        echo "# Generated: $(date '+%Y-%m-%d %H:%M:%S')"
+        echo "# Version: $version"
+        echo "# Modules: aliases, functions"
+        echo "# DO NOT EDIT - This file is auto-generated"
+        echo ""
+        echo "# ============================================================================="
+        echo "# MODULE: aliases"
+        echo "# ============================================================================="
+        echo ""
+        cat "$SHELL_TOOLS_ROOT/modules/aliases.zsh"
+        echo ""
+        echo "# ============================================================================="
+        echo "# MODULE: functions"
+        echo "# ============================================================================="
+        echo ""
+        cat "$SHELL_TOOLS_ROOT/modules/functions.zsh"
+    } > "$cache_file"
+
+    # Store version for cache invalidation
+    echo "$version" > "$cache_dir/.version-minimal"
+}
+
 # Generate static cache from modules
 _st_generate_cache() {
     local cache_file="$SHELL_TOOLS_ROOT/cache/init.zsh"

@@ -63,6 +63,90 @@ SHELL_TOOLS_ROOT="${0:A:h}"
 # Load core utilities early (needed for _st_log in dev mode message)
 source "$SHELL_TOOLS_ROOT/lib/core.zsh"
 
+# -----------------------------------------------------------------------------
+# Minimal mode (root user or SHELL_TOOLS_MINIMAL=1)
+# -----------------------------------------------------------------------------
+# Only loads aliases and functions - no oh-my-zsh, tools, completions, or auto-updates
+if _st_is_minimal_mode; then
+    # Show message only in interactive shells
+    if _st_is_interactive; then
+        if [[ $EUID -eq 0 ]]; then
+            _st_log "Minimal mode (root user)"
+        else
+            _st_log "Minimal mode"
+        fi
+    fi
+
+    # Export early for subshells
+    export SHELL_TOOLS_ROOT
+    export SHELL_TOOLS_MINIMAL=1
+
+    # Load minimal loader functions
+    source "$SHELL_TOOLS_ROOT/lib/loader.zsh"
+
+    # Generate minimal cache if needed
+    if _st_needs_minimal_regenerate; then
+        _st_log "Generating minimal cache..."
+        _st_generate_minimal_cache
+    fi
+
+    # Load minimal cached content
+    if [[ -f "$SHELL_TOOLS_ROOT/cache/init-minimal.zsh" ]]; then
+        source "$SHELL_TOOLS_ROOT/cache/init-minimal.zsh"
+    fi
+
+    # Load updater and uninstaller for manual use (skip auto-update check)
+    source "$SHELL_TOOLS_ROOT/lib/updater.zsh"
+    source "$SHELL_TOOLS_ROOT/lib/uninstaller.zsh"
+
+    # Minimal st-version
+    st-version() {
+        local version="$(command cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null || echo "unknown")"
+        _st_log "v$version (minimal)"
+    }
+
+    # Minimal st-reload
+    st-reload() {
+        _st_log "Reloading..."
+        rm -f "$SHELL_TOOLS_ROOT/cache/.version-minimal"
+        source "$SHELL_TOOLS_ROOT/plugin.zsh"
+        _st_success "Reloaded!"
+    }
+
+    # Minimal st-info (adapted - shows cache status)
+    st-info() {
+        local bold=$'\e[1m' dim=$'\e[2m' reset=$'\e[0m'
+        local green=$'\e[32m' yellow=$'\e[33m'
+        local version="$(command cat "$SHELL_TOOLS_ROOT/VERSION" 2>/dev/null || echo "unknown")"
+        local cached_version="$(command cat "$SHELL_TOOLS_ROOT/cache/.version-minimal" 2>/dev/null || echo "none")"
+
+        echo ""
+        printf "%s %s\n" "${bold}shell-tools${reset}" "${yellow}[MINIMAL]${reset}"
+        echo "═══════════════════════════════════════════════════"
+        echo ""
+        printf "  ${bold}${dim}%-14s${reset} %s\n" "Mode" "Minimal"
+        printf "  ${bold}${dim}%-14s${reset} %s\n" "Version" "$version"
+        [[ $EUID -eq 0 ]] && printf "  ${bold}${dim}%-14s${reset} %s\n" "User" "root"
+        printf "  ${bold}${dim}%-14s${reset} %s\n" "Root" "$(_st_shorten_path "$SHELL_TOOLS_ROOT")"
+        echo ""
+        echo "${bold}Cache${reset}"
+        echo "───────────────────────────────────────────────────"
+        if [[ "$cached_version" == "$version" ]]; then
+            printf "  ${bold}${dim}%-14s${reset} %s ${green}(current)${reset}\n" "Version" "$cached_version"
+        else
+            printf "  ${bold}${dim}%-14s${reset} %s ${yellow}(stale)${reset}\n" "Version" "$cached_version"
+        fi
+        echo ""
+        echo "${bold}Loaded Modules${reset}"
+        echo "───────────────────────────────────────────────────"
+        echo "  ${green}✓${reset} aliases.zsh"
+        echo "  ${green}✓${reset} functions.zsh"
+        echo ""
+    }
+
+    return 0
+fi
+
 # Detect development mode (.dev marker file indicates dev environment)
 if [[ -f "$SHELL_TOOLS_ROOT/.dev" ]]; then
     export SHELL_TOOLS_DEV=1

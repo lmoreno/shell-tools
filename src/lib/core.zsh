@@ -54,6 +54,11 @@ _st_is_linux() {
     [[ "$OSTYPE" == linux* ]]
 }
 
+# Check if running in minimal mode (root user or explicit opt-in)
+_st_is_minimal_mode() {
+    [[ $EUID -eq 0 ]] || [[ "$SHELL_TOOLS_MINIMAL" == "1" ]]
+}
+
 # Cross-platform sed in-place edit (macOS vs Linux compatibility)
 _st_sed_i() {
     if _st_is_macos; then
