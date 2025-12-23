@@ -107,6 +107,21 @@ EOF
     echo "   ✓ Added source line"
 fi
 
+# Add to .bashrc if not already present (for bash-to-zsh auto-switch)
+BASHRC="$HOME/.bashrc"
+echo ""
+echo "📝 Configuring ~/.bashrc"
+if grep -q "shell-tools" "$BASHRC" 2>/dev/null; then
+    echo "   ℹ️  Already configured"
+else
+    cat >> "$BASHRC" << 'EOF'
+
+# shell-tools bash initialization (auto-switch to zsh)
+[[ -f ~/.shell-tools/lib/bash-init.sh ]] && source ~/.shell-tools/lib/bash-init.sh
+EOF
+    echo "   ✓ Added source line"
+fi
+
 echo ""
 echo "=========================================="
 echo "✅ Installation complete!"
