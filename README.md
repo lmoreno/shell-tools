@@ -121,6 +121,57 @@ source ~/.shell-tools/plugin.zsh
 alias myproject='cd ~/projects/myproject'
 ```
 
+## Minimal Mode
+
+Minimal mode provides a lightweight shell initialization for environments where the full shell-tools feature set is not needed or appropriate.
+
+### When Minimal Mode Activates
+
+Minimal mode is automatically activated when:
+- **Root user**: Running as root (`$EUID -eq 0`)
+- **Explicit opt-in**: `SHELL_TOOLS_MINIMAL=1` environment variable is set
+
+### What's Loaded in Minimal Mode
+
+| Component | Loaded | Notes |
+|-----------|--------|-------|
+| Aliases | Yes | All shell aliases |
+| Functions | Yes | Utility functions |
+| Minimal cache | Yes | `init-minimal.zsh` |
+| Oh-My-Zsh | No | External dependency |
+| Tool installations | No | Security/simplicity |
+| Tool integrations | No | No zoxide/fzf/thefuck evals |
+| Completions | No | Overhead reduction |
+| Auto-update check | No | Manual update still works |
+| Git config | No | No side effects |
+
+### Commands Available in Minimal Mode
+
+| Command | Behavior |
+|---------|----------|
+| `st-version` | Shows version with "(minimal)" suffix |
+| `st-reload` | Reloads minimal config |
+| `st-info` | Shows [MINIMAL] header and cache status |
+| `st-update` | Manual update works |
+| `st-uninstall` | Full functionality |
+
+### Use Cases
+
+- **Linux servers**: Root sessions with minimal dependencies
+- **Containers**: Lightweight shell setup for Docker/CI
+- **Slow connections**: Faster startup over SSH
+- **Security**: Avoids eval commands and system config modifications
+
+### Manual Activation
+
+To force minimal mode for any user:
+
+```zsh
+# In ~/.zshrc, before sourcing shell-tools
+export SHELL_TOOLS_MINIMAL=1
+source ~/.shell-tools/plugin.zsh
+```
+
 ## Updates
 
 shell-tools automatically checks for updates on every `st-reload` by default.
