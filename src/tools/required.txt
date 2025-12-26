@@ -9,4 +9,3 @@ fd
 zoxide
 fzf
 trash
-thefuck

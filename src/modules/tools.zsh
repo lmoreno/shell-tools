@@ -25,8 +25,13 @@ fi
 # -----------------------------------------------------------------------------
 # thefuck (command correction)
 # -----------------------------------------------------------------------------
+# Note: thefuck may fail on Python 3.12+ (imp module removed)
+# Install from git if needed: pip install git+https://github.com/nvbn/thefuck.git
 if command -v thefuck &> /dev/null; then
-    eval $(thefuck --alias)
+    local thefuck_init
+    if thefuck_init=$(thefuck --alias 2>/dev/null); then
+        eval "$thefuck_init"
+    fi
 fi
 
 # -----------------------------------------------------------------------------
