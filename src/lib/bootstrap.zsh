@@ -12,7 +12,6 @@ _ST_BREW_FORMULAS=(
     zoxide    zoxide
     fzf       fzf
     trash     trash
-    thefuck   thefuck
 )
 
 _st_bootstrap() {
