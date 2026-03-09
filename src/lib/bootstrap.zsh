@@ -206,6 +206,9 @@ _st_bootstrap_omz() {
         fi
     fi
 
+    # Fix directory permissions (some filesystems like NAS create dirs as 777)
+    chmod -R g-w,o-w "$omz_dir" 2>/dev/null
+
     # Create/update .zshrc with Oh-My-Zsh configuration
     _st_generate_zshrc
 }
