@@ -18,6 +18,33 @@ echo "  shell-tools installer"
 echo "=========================================="
 echo ""
 
+# Install prerequisites (zsh and unzip) on Linux if missing
+if [[ "$(uname)" == "Linux" ]] && command -v apt-get &>/dev/null; then
+    PREREQS=()
+    command -v zsh &>/dev/null || PREREQS+=(zsh)
+    command -v unzip &>/dev/null || PREREQS+=(unzip)
+
+    if [[ ${#PREREQS[@]} -gt 0 ]]; then
+        echo "📦 Installing prerequisites: ${PREREQS[*]}"
+        SUDO_CMD=""
+        if [[ $EUID -ne 0 ]]; then
+            if command -v sudo &>/dev/null && sudo -n true &>/dev/null; then
+                SUDO_CMD="sudo"
+            else
+                echo "❌ Missing: ${PREREQS[*]}"
+                echo "   Please install manually: sudo apt-get install ${PREREQS[*]}"
+                exit 1
+            fi
+        fi
+        $SUDO_CMD apt-get install -y "${PREREQS[@]}" || {
+            echo "❌ Failed to install prerequisites"
+            exit 1
+        }
+        echo "   ✓ Installed ${PREREQS[*]}"
+        echo ""
+    fi
+fi
+
 # Get latest release info from GitHub API
 echo "📡 Fetching latest version..."
 LATEST_RELEASE_JSON=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")

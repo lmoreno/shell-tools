@@ -81,29 +81,50 @@ _st_bootstrap() {
 
             for tool in "${missing[@]}"; do
                 local pkg="$tool"
-                # Ubuntu mapping
+                # Debian/Ubuntu package name mapping
                 [[ "$tool" == "fd" ]] && pkg="fd-find"
                 [[ "$tool" == "ripgrep" ]] && pkg="ripgrep"
-                [[ "$tool" == "eza" ]] && pkg="eza" # eza might not be in default repos for old ubuntu
-                
-                # Special case: eza needs gierens/eza repo usually, but let's assume standard repos first.
-                # If eza fails, user might need to add repo. 
+                [[ "$tool" == "trash" ]] && pkg="trash-cli"
+
+                # eza requires the gierens apt repo on Debian/Ubuntu
+                if [[ "$tool" == "eza" ]] && ! apt-cache show eza &>/dev/null; then
+                    _st_log "  Adding eza repository..."
+                    $sudo_cmd mkdir -p /etc/apt/keyrings
+                    if [[ ! -f /etc/apt/keyrings/gierens.gpg ]]; then
+                        if wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | $sudo_cmd gpg --dearmor -o /etc/apt/keyrings/gierens.gpg 2>/dev/null; then
+                            $sudo_cmd chmod 644 /etc/apt/keyrings/gierens.gpg
+                        else
+                            _st_warn "  Failed to add eza GPG key, skipping"
+                            continue
+                        fi
+                    fi
+                    if [[ ! -f /etc/apt/sources.list.d/gierens.list ]]; then
+                        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | $sudo_cmd tee /etc/apt/sources.list.d/gierens.list >/dev/null
+                        $sudo_cmd chmod 644 /etc/apt/sources.list.d/gierens.list
+                    fi
+                    $sudo_cmd apt-get update -y >/dev/null 2>&1
+                fi
 
                 _st_log "  Installing $pkg..."
                 if $sudo_cmd apt-get install -y "$pkg"; then
                     _st_success "  Installed $pkg"
-                    
-                    # Fix Ubuntu quirks (batcat -> bat, fdfind -> fd)
+
+                    # Fix Debian/Ubuntu quirks (batcat -> bat, fdfind -> fd, trash-put -> trash)
                     mkdir -p "$HOME/.local/bin"
-                    
+
                     if [[ "$tool" == "bat" ]] && ! _st_has bat; then
                         ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
                         _st_success "    Linked batcat -> bat"
                     fi
-                    
+
                     if [[ "$tool" == "fd" ]] && ! _st_has fd; then
                         ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
                         _st_success "    Linked fdfind -> fd"
+                    fi
+
+                    if [[ "$tool" == "trash" ]] && ! _st_has trash; then
+                        ln -sf "$(command -v trash-put)" "$HOME/.local/bin/trash"
+                        _st_success "    Linked trash-put -> trash"
                     fi
                 else
                     _st_error "  Failed to install $pkg"
